@@ -5,7 +5,7 @@
     box-sizing: border-box;
 }
 body {
-    font-family: 'Georgia', serif;
+    font-family: "SUSE Mono", sans-serif;
     background: #4e342e;
     min-height: 100vh;
     padding: 20px;

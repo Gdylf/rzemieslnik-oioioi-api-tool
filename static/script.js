@@ -9,7 +9,7 @@ let tokensData = {};
 async function loadContests() {
     const select = document.getElementById('contest-select');
     try {
-        const response = await fetch('https://raw.githubusercontent.com/Gdylf/rzemieslnik-oioioi-api-tool/caf5f5e3492b6b07fc5bbbf49c5170468922ce23/static/contesty.json');
+        const response = await fetch('static/contesty.json');
         if (!response.ok) {
             throw new Error(`Błąd ładowania: ${response.status}`);
         }
@@ -43,7 +43,7 @@ async function loadContests() {
 async function loadTokens() {
     const tbody = document.getElementById('token-db-body');
     try {
-        const response = await fetch('https://raw.githubusercontent.com/Gdylf/rzemieslnik-oioioi-api-tool/caf5f5e3492b6b07fc5bbbf49c5170468922ce23/static/tokeny.json');
+        const response = await fetch('/static/tokeny.json');
         if (!response.ok) {
             throw new Error(`Błąd ładowania: ${response.status}`);
         }
