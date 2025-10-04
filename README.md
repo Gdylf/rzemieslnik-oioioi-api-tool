@@ -46,7 +46,7 @@ Użycie Pobieracza Problemów
    __pobieracz problemów.exe dla komputerów z systemem windows, albo
    __pobieracz problemów.py dla komputerów z zainstalowanym pythonem.
 
-3. Następnie wystarczy ustawić opcje generowania i kliknąć run.
+2. Następnie wystarczy ustawić opcje generowania i kliknąć run.
    Plik powinien problemy.json powinien się zapisać w tym samym katalogu.
 
  
