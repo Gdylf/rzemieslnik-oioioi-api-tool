@@ -7,7 +7,6 @@ from datetime import datetime
 import threading
 import json
 import os
-import webbrowser
 app = Flask(__name__)
 CORS(app)
 
@@ -248,8 +247,7 @@ def clear_logs():
     return jsonify({'success': True})
 
 if __name__ == '__main__':
-    print("🛠️ Uruchamianie Rzemieślnik Wyzwania Client (Flask)...")
+    print("🛠️ Uruchamianie Rzemieślnik OIOIOI API Server (Flask)...")
     print("🌐 Otwórz: http://127.0.0.1:5000")
-    webbrowser.open_new_tab("http://127.0.0.1:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
     
