@@ -32,10 +32,23 @@ Instalacja
 4. Zainstaluj wymagane biblioteki:
    pip install -r requirements.txt
 
-Użycie
+Użycie Serwera
 -------
-1. Uruchom aplikację:
+1. Aby uruchomić serwer należy uruchomić aplikację:
    python __app.py
 
-2. Skorzystaj z dostępnych funkcji API.
+2. Następnie wystarczy otworzyć *localhost:5000* w przeglądarce
+
+
+Użycie Pobieracza Problemów
+-------
+1. Aby uruchomić serwer należy uruchomić aplikację:
+   __pobieracz problemów.exe dla komputerów z systemem windows, albo
+   __pobieracz problemów.py dla komputerów z zainstalowanym pythonem.
+
+3. Następnie wystarczy ustawić opcje generowania i kliknąć run.
+   Plik powinien problemy.json powinien się zapisać w tym samym katalogu.
+
+ 
+   
 
