@@ -1,0 +1,437 @@
+/* static/styles.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Georgia', serif;
+    background: #4e342e;
+    min-height: 100vh;
+    padding: 20px;
+}
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #fff8e1;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+    overflow: hidden;
+    border: 3px solid #795548;
+}
+.header {
+    background: #424242; 
+    color: white;
+    padding: 30px;
+    text-align: center;
+    border-bottom: 2px solid #212121;
+}
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px #000;
+}
+.header p {
+    opacity: 0.9;
+    font-size: 1.1em;
+}
+.content {
+    padding: 30px;
+}
+.section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    border-left: 5px solid #ffb300; 
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+.section h2 {
+    color: #5d4037;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    border-bottom: 1px dashed #795548;
+    padding-bottom: 5px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+input[type="text"], input[type="number"], textarea, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #9e9e9e;
+    border-radius: 2px;
+    background-color: white;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #ffb300;
+    box-shadow: 0 0 5px rgba(255, 179, 0, 0.5);
+}
+textarea {
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+    background-color: #e0e0e0;
+}
+input[type="file"] {
+    padding: 10px;
+    border: 2px dashed #9e9e9e;
+    border-radius: 2px;
+    width: 100%;
+    cursor: pointer;
+    background-color: #f5f5f5;
+}
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 2px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    box-shadow: 0 3px #5d4037;
+}
+.btn:active {
+    box-shadow: 0 1px #5d4037;
+    transform: translateY(2px);
+}
+.btn-primary {
+    background: #ffb300; 
+    color: #424242;
+}
+.btn-success {
+    background: #795548; 
+    color: white;
+}
+.btn-info {
+    background: #616161; 
+    color: white;
+}
+.btn-warning {
+    background: #d32f2f; 
+    color: white;
+}
+.logs-section {
+    margin-top: 30px;
+}
+.logs-controls {
+    margin-bottom: 15px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+th {
+    background: #5d4037;
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+}
+td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+}
+tr:nth-child(even) {
+    background: #fcfcfc;
+}
+tr:hover {
+    background: #fffde7;
+}
+.status-ok {
+    color: #388e3c;
+    font-weight: 600;
+}
+.status-fail {
+    color: #d32f2f;
+    font-weight: 600;
+}
+.response-text {
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+.info-box {
+    background: #fff9c4;
+    border-left: 4px solid #ffeb3b;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.info-box strong {
+    color: #ffb300;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+.logs-empty {
+    text-align: center; 
+    color: #795548 !important;
+}
+.status-message {
+    margin-top: 10px;
+}
+
+/* Checkbox Dropdown Styles */
+.checkbox-dropdown {
+    position: relative;
+    width: 100%;
+    user-select: none;
+}
+
+.checkbox-dropdown-button {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #9e9e9e;
+    border-radius: 2px;
+    background-color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.checkbox-dropdown-button:hover {
+    border-color: #ffb300;
+}
+
+.checkbox-dropdown.active .checkbox-dropdown-button {
+    border-color: #ffb300;
+    box-shadow: 0 0 5px rgba(255, 179, 0, 0.5);
+}
+
+.checkbox-dropdown-button .arrow {
+    transition: transform 0.3s;
+    color: #795548;
+    font-size: 12px;
+}
+
+.checkbox-dropdown.active .checkbox-dropdown-button .arrow {
+    transform: rotate(180deg);
+}
+
+.checkbox-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 0;
+    overflow: hidden;
+    background: white;
+    border: 1px solid #9e9e9e;
+    border-top: none;
+    border-radius: 0 0 2px 2px;
+    z-index: 1000;
+    transition: max-height 0.3s ease, border 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.checkbox-dropdown.active .checkbox-dropdown-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border-color: #ffb300;
+}
+
+.checkbox-item {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.checkbox-item:last-child {
+    border-bottom: none;
+}
+
+.checkbox-item:hover {
+    background-color: #fffde7;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    cursor: pointer;
+    accent-color: #ffb300;
+}
+
+.checkbox-item label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+    text-transform: none;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Scrollbar dla checkbox dropdown */
+.checkbox-dropdown-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.checkbox-dropdown-list::-webkit-scrollbar-track {
+    background: #f5f5f5;
+}
+
+.checkbox-dropdown-list::-webkit-scrollbar-thumb {
+    background: #9e9e9e;
+    border-radius: 4px;
+}
+
+.checkbox-dropdown-list::-webkit-scrollbar-thumb:hover {
+    background: #795548;
+}
+
+@media (max-width: 768px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+    .top-section {
+        grid-template-columns: 1fr !important;
+    }
+    .right-column {
+        order: -1;
+    }
+}
+
+/* Top Section Layout */
+.top-section {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.right-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Token Database Styles */
+.token-database {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+#token-db-container {
+    overflow-y: auto;
+    flex: 1;
+}
+
+#token-db-table {
+    margin: 0;
+    font-size: 13px;
+}
+
+#token-db-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #5d4037;
+}
+
+.token-contest-name {
+    font-weight: 600;
+    color: #5d4037;
+}
+
+.token-value {
+    font-family: 'Courier New', monospace;
+    color: #666;
+}
+
+.token-hidden {
+    letter-spacing: 2px;
+}
+
+.token-actions {
+    white-space: nowrap;
+}
+
+.btn-mini {
+    padding: 5px 10px;
+    font-size: 12px;
+    margin: 2px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.btn-copy {
+    background: #616161;
+    color: white;
+}
+
+.btn-copy:hover {
+    background: #424242;
+}
+
+.btn-use {
+    background: #ffb300;
+    color: #424242;
+}
+
+.btn-use:hover {
+    background: #ffa000;
+}
+
+.btn-mini:active {
+    transform: scale(0.95);
+}
+
+/* Scrollbar dla token database */
+#token-db-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#token-db-container::-webkit-scrollbar-track {
+    background: #f5f5f5;
+}
+
+#token-db-container::-webkit-scrollbar-thumb {
+    background: #9e9e9e;
+    border-radius: 4px;
+}
+
+#token-db-container::-webkit-scrollbar-thumb:hover {
+    background: #795548;
+}

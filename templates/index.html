@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rzemieślnik Wyzwania Client</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Rzemieślnik Wyzwania Client</h1>
+            <p>Narzędzie do wysyłania submitów na platformę Wyzwania Programuj</p>
+        </div>
+        
+        <div class="content">
+            <div class="top-section">
+                <div class="left-column">
+                    <div class="info-box">
+                        <strong>📋 Instrukcja:</strong> Wprowadź swój token API, **wybierz kontest** i kliknij odpowiedni przycisk. 
+                        Token nie jest zapisywany – dla bezpieczeństwa musi być podawany za każdym razem.
+                    </div>
+
+                    <div class="section">
+                        <h2>🌐 Wybór Kontestu</h2>
+                        <div class="form-group">
+                            <label for="contest-select">Nazwa Kontestu:</label>
+                            <select id="contest-select">
+                                <option value="">Ładowanie kontestów...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>🔑 Autoryzacja (Token API)</h2>
+                        <div class="form-group">
+                            <label for="token">Token API:</label>
+                            <input type="text" id="token" placeholder="Wklej swój token API...">
+                        </div>
+                        <button class="btn btn-info" onclick="checkToken()">Sprawdź Token</button> 
+                        <div id="token-status" class="status-message"></div>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="section token-database">
+                        <h2>🗄️ Baza Tokenów</h2>
+                        <div id="token-db-container">
+                            <table id="token-db-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nazwa Kontestu</th>
+                                        <th>Token</th>
+                                        <th>Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="token-db-body">
+                                    <tr>
+                                        <td colspan="3" class="logs-empty">Ładowanie tokenów...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>📤 Pojedynczy Submit</h2>
+                
+                <div class="form-group">
+                    <label>Wybierz sposób wprowadzania zadania:</label>
+                    <div style="margin: 10px 0;">
+                        <label style="display: inline; margin-right: 20px;">
+                            <input type="radio" name="single-mode" value="manual" checked onchange="toggleSingleMode()"> 
+                            Wpisz short name
+                        </label>
+                        <label style="display: inline;">
+                            <input type="radio" name="single-mode" value="dropdown" onchange="toggleSingleMode()"> 
+                            Wybierz z listy
+                        </label>
+                    </div>
+                </div>
+
+                <div id="single-manual-input" class="form-group">
+                    <label for="single-problem-text">Short Name Zadania:</label>
+                    <input type="text" id="single-problem-text" placeholder="np. wiel_szyfr">
+                </div>
+
+                <div id="single-dropdown-input" class="form-group" style="display: none;">
+                    <label for="single-problem-select">Wybierz zadanie:</label>
+                    <select id="single-problem-select">
+                        <option value="">Ładowanie zadań...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="single-code">Kod źródłowy:</label>
+                    <textarea id="single-code" rows="10" placeholder="Wklej kod tutaj..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="single-file">Lub wybierz plik:</label>
+                    <input type="file" id="single-file">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="single-repeat">Liczba powtórzeń:</label>
+                        <input type="number" id="single-repeat" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="single-concurrency">Równoległość (max. wątków):</label>
+                        <input type="number" id="single-concurrency" value="5" min="1" max="20">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="singleSubmit()">Wyślij Submit</button>
+            </div>
+
+            <div class="section">
+                <h2>🚀 Multi-Submit (wiele zadań)</h2>
+                
+                <div class="form-group">
+                    <label>Wybierz sposób wprowadzania zadań:</label>
+                    <div style="margin: 10px 0;">
+                        <label style="display: inline; margin-right: 20px;">
+                            <input type="radio" name="multi-mode" value="manual" checked onchange="toggleMultiMode()"> 
+                            Ręcznie (po przecinku)
+                        </label>
+                        <label style="display: inline;">
+                            <input type="radio" name="multi-mode" value="dropdown" onchange="toggleMultiMode()"> 
+                            Z listy (checkboxy)
+                        </label>
+                    </div>
+                </div>
+
+                <div id="multi-manual-input" class="form-group">
+                    <label for="multi-problems-text">Short Names zadań (po przecinku):</label>
+                    <input type="text" id="multi-problems-text" placeholder="wiel_szyfr,wiel_trasy,wiel_wieloryb">
+                </div>
+
+                <div id="multi-dropdown-input" class="form-group" style="display: none;">
+                    <label>Wybierz zadania:</label>
+                    <div class="checkbox-dropdown" id="multi-problems-dropdown">
+                        <div class="checkbox-dropdown-button" onclick="toggleDropdown('multi-problems-dropdown')">
+                            <span id="multi-problems-label">Wybierz zadania...</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="checkbox-dropdown-list" id="multi-problems-list">
+                            <div class="checkbox-item">Ładowanie...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="multi-code">Kod źródłowy:</label>
+                    <textarea id="multi-code" rows="10" placeholder="Wklej kod tutaj..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="multi-file">Lub wybierz plik:</label>
+                    <input type="file" id="multi-file">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="multi-repeat">Liczba powtórzeń na zadanie:</label>
+                        <input type="number" id="multi-repeat" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="multi-concurrency">Równoległość (max. wątków):</label>
+                        <input type="number" id="multi-concurrency" value="10" min="1" max="20">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="multiSubmit()">Wyślij Multi-Submit</button>
+            </div>
+
+            <div class="section">
+                <h2>🤖 SYBAU Submit</h2>
+                <div class="info-box">
+                    <strong>ℹ️ SYBAU:</strong> Automatycznie generuje minimalistyczny kod C++ wypisujący "SYBAU". Idealne do szybkiego sprawdzenia tokena dla wybranego zadania.
+                </div>
+                
+                <div class="form-group">
+                    <label>Wybierz sposób wprowadzania zadania:</label>
+                    <div style="margin: 10px 0;">
+                        <label style="display: inline; margin-right: 20px;">
+                            <input type="radio" name="sybau-mode" value="manual" checked onchange="toggleSybauMode()"> 
+                            Wpisz short name
+                        </label>
+                        <label style="display: inline;">
+                            <input type="radio" name="sybau-mode" value="dropdown" onchange="toggleSybauMode()"> 
+                            Wybierz z listy
+                        </label>
+                    </div>
+                </div>
+
+                <div id="sybau-manual-input" class="form-group">
+                    <label for="sybau-problem-text">Short Name Zadania:</label>
+                    <input type="text" id="sybau-problem-text" placeholder="np. wiel_szyfr">
+                </div>
+
+                <div id="sybau-dropdown-input" class="form-group" style="display: none;">
+                    <label for="sybau-problem-select">Wybierz zadanie:</label>
+                    <select id="sybau-problem-select">
+                        <option value="">Ładowanie zadań...</option>
+                    </select>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="sybau-repeat">Liczba powtórzeń:</label>
+                        <input type="number" id="sybau-repeat" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="sybau-concurrency">Równoległość (max. wątków):</label>
+                        <input type="number" id="sybau-concurrency" value="5" min="1" max="20">
+                    </div>
+                </div>
+                <button class="btn btn-warning" onclick="sybauSubmit()">Wyślij SYBAU Submit</button>
+            </div>
+
+            <div class="section">
+                <h2>🔥 Multi-SYBAU Submit (wiele zadań)</h2>
+                <div class="info-box">
+                    <strong>⚡ Multi-SYBAU:</strong> Wysyła SYBAU do wielu zadań jednocześnie! Wybierz zadania z checkboxów lub wpisz ręcznie.
+                </div>
+                
+                <div class="form-group">
+                    <label>Wybierz sposób wprowadzania zadań:</label>
+                    <div style="margin: 10px 0;">
+                        <label style="display: inline; margin-right: 20px;">
+                            <input type="radio" name="multi-sybau-mode" value="manual" checked onchange="toggleMultiSybauMode()"> 
+                            Ręcznie (po przecinku)
+                        </label>
+                        <label style="display: inline;">
+                            <input type="radio" name="multi-sybau-mode" value="dropdown" onchange="toggleMultiSybauMode()"> 
+                            Z listy (checkboxy)
+                        </label>
+                    </div>
+                </div>
+
+                <div id="multi-sybau-manual-input" class="form-group">
+                    <label for="multi-sybau-problems-text">Short Names zadań (po przecinku):</label>
+                    <input type="text" id="multi-sybau-problems-text" placeholder="dnt,drw,tro">
+                </div>
+
+                <div id="multi-sybau-dropdown-input" class="form-group" style="display: none;">
+                    <label>Wybierz zadania:</label>
+                    <div class="checkbox-dropdown" id="multi-sybau-problems-dropdown">
+                        <div class="checkbox-dropdown-button" onclick="toggleDropdown('multi-sybau-problems-dropdown')">
+                            <span id="multi-sybau-problems-label">Wybierz zadania...</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="checkbox-dropdown-list" id="multi-sybau-problems-list">
+                            <div class="checkbox-item">Ładowanie...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="multi-sybau-repeat">Liczba powtórzeń na zadanie:</label>
+                        <input type="number" id="multi-sybau-repeat" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="multi-sybau-concurrency">Równoległość (max. wątków):</label>
+                        <input type="number" id="multi-sybau-concurrency" value="10" min="1" max="20">
+                    </div>
+                </div>
+                <button class="btn btn-warning" onclick="multiSybauSubmit()">🔥 Wyślij Multi-SYBAU</button>
+            </div>
+
+            <div class="logs-section">
+                <h2>📊 Logi Submitów</h2>
+                <div class="logs-controls">
+                    <button class="btn btn-info" onclick="refreshLogs()">Odśwież Logi</button>
+                    <button class="btn btn-warning" onclick="clearLogs()">Wyczyść Logi</button>
+                </div>
+                <div id="logs-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Czas</th>
+                                <th>Short Name</th>
+                                <th>Status</th>
+                                <th>Odpowiedź Serwera</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-body">
+                            <tr>
+                                <td colspan="4" class="logs-empty">
+                                    Brak logów. Wyślij pierwszy submit!
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
