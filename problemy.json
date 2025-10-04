@@ -1,0 +1,114 @@
+[
+    {
+        "short_name": "dnt",
+        "full_name": "Dzielone na Trzy"
+    },
+    {
+        "short_name": "drw",
+        "full_name": "Dwa razy Większa"
+    },
+    {
+        "short_name": "ilb",
+        "full_name": "Benzyna"
+    },
+    {
+        "short_name": "ile",
+        "full_name": "Ile Liter?"
+    },
+    {
+        "short_name": "ilk",
+        "full_name": "Wycinanki"
+    },
+    {
+        "short_name": "kar",
+        "full_name": "Karty"
+    },
+    {
+        "short_name": "kzl",
+        "full_name": "K najwiekszych"
+    },
+    {
+        "short_name": "mop",
+        "full_name": "Mniejsza o Pięć"
+    },
+    {
+        "short_name": "pal",
+        "full_name": "Palindrom?"
+    },
+    {
+        "short_name": "res",
+        "full_name": "Restauracje"
+    },
+    {
+        "short_name": "bok",
+        "full_name": "Bok Kwadratu"
+    },
+    {
+        "short_name": "cok",
+        "full_name": "Czekolada"
+    },
+    {
+        "short_name": "dzi",
+        "full_name": "Dzielnik"
+    },
+    {
+        "short_name": "lpr",
+        "full_name": "Liczba prostokatow"
+    },
+    {
+        "short_name": "par",
+        "full_name": "Liczby parzystocyfrowe"
+    },
+    {
+        "short_name": "tel",
+        "full_name": "Teleportacja"
+    },
+    {
+        "short_name": "fil",
+        "full_name": "Filatelista Kacper"
+    },
+    {
+        "short_name": "kom",
+        "full_name": "Komunikacja"
+    },
+    {
+        "short_name": "oli",
+        "full_name": "Oblicz Odwrotność Liczby"
+    },
+    {
+        "short_name": "riz",
+        "full_name": "Rizz"
+    },
+    {
+        "short_name": "sil",
+        "full_name": "Silnia"
+    },
+    {
+        "short_name": "tru",
+        "full_name": "Truskawkowe żniwa"
+    },
+    {
+        "short_name": "kmp",
+        "full_name": "Kompas"
+    },
+    {
+        "short_name": "mpr",
+        "full_name": "MAKSYMALNY OBSZAR"
+    },
+    {
+        "short_name": "nau",
+        "full_name": "Nauka Liczenia"
+    },
+    {
+        "short_name": "plu",
+        "full_name": "N Plusów"
+    },
+    {
+        "short_name": "pzd",
+        "full_name": "5 zadan"
+    },
+    {
+        "short_name": "tro",
+        "full_name": "Trójkąty na przedziale"
+    }
+]
