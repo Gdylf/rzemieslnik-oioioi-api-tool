@@ -15,7 +15,22 @@ Wymagania
 ---------
 - Python 3.x
 - Zainstalowane biblioteki:
-  -Wszystko z dependencies.txt
+  -concurrent
+  -datetime
+  -flask
+  -flask_cors
+  -json
+  -os
+  -pyautogui
+  -pyperclip
+  -requests
+  -short_name_fetcher
+  -sys
+  -threading
+  -time
+  -tkinter
+  -webbrowser
+
 
 Instalacja
 -----------
