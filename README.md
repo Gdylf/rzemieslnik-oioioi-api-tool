@@ -35,7 +35,7 @@ Instalacja
 4. Zainstaluj wymagane biblioteki:
 ```
    pip install -r requirements.txt
-''
+```
 Użycie Serwera
 -------
 1. Aby uruchomić serwer należy uruchomić aplikację:
