@@ -20,24 +20,29 @@ Wymagania
 Instalacja
 -----------
 1. Sklonuj repozytorium:
+```
    git clone https://github.com/Gdylf/rzemieslnik-oioioi-api-tool.git
-
+```
 2. Przejdź do katalogu projektu:
+```
    cd rzemieslnik-oioioi-api-tool
-
+```
 3. (Opcjonalnie) Utwórz i aktywuj wirtualne środowisko:
+```
    python -m venv venv
    .\venv\Scripts\activate
-
+```
 4. Zainstaluj wymagane biblioteki:
+```
    pip install -r requirements.txt
-
+''
 Użycie Serwera
 -------
 1. Aby uruchomić serwer należy uruchomić aplikację:
+```
    python __app.py
-
-2. Następnie wystarczy otworzyć *localhost:5000* w przeglądarce
+```
+2. Następnie wystarczy otworzyć *localhost:4000* w przeglądarce
 
 
 Użycie Pobieracza Problemów
