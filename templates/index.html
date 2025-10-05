@@ -10,8 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=SUSE+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <div class="header">
             <h1>🛠️ Rzemieślnik Wyzwania Client</h1>
             <p>Narzędzie do wysyłania submitów na platformę Wyzwania Programuj</p>
         </div>
@@ -23,7 +22,6 @@
                         <strong>📋 Instrukcja:</strong> Wprowadź swój token API, wybierz kontest i przeciągnij plik problemy.json aby aktywować pełną funkcjonalność.
                     </div>
 
-                    <!-- Drag & Drop dla problemy.json -->
                     <div class="section">
                         <h2>📁 Załaduj problemy.json</h2>
                         <div class="drop-zone" id="problemy-drop">
@@ -39,11 +37,18 @@
                         <h2>🌐 Wybór Kontestu</h2>
                         <div class="form-group">
                             <label for="contest-select">Nazwa Kontestu:</label>
-                            <select id="contest-select">
-                                <option value="">Ładowanie kontestów...</option>
-                            </select>
+                            <div class="checkbox-dropdown" id="contest-dropdown">
+                                <div class="checkbox-dropdown-button" onclick="toggleDropdown('contest-dropdown')">
+                                    <span id="contest-label">Ładowanie kontestów...</span>
+                                    <span class="arrow">▼</span>
+                                </div>
+                                <div class="checkbox-dropdown-list" id="contest-list">
+                                    <div class="checkbox-item">Ładowanie...</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
 
                     <div class="section">
                         <h2>🔑 Autoryzacja (Token API)</h2>
@@ -77,7 +82,6 @@
                 </div>
             </div>
             
-            <!-- Pojedynczy Submit -->
             <div class="section">
                 <h2>📤 Pojedynczy Submit</h2>
                 <div class="form-group">
@@ -95,9 +99,18 @@
                     <label for="single-problem-text">Short Name Zadania:</label>
                     <input type="text" id="single-problem-text" placeholder="np. wiel_szyfr">
                 </div>
+                
                 <div id="single-dropdown-input" class="form-group" style="display: none;">
-                    <label for="single-problem-select">Wybierz zadanie:</label>
-                    <select id="single-problem-select"><option value="">Załaduj problemy.json</option></select>
+                    <label>Wybierz zadanie:</label>
+                    <div class="checkbox-dropdown" id="single-problems-dropdown">
+                        <div class="checkbox-dropdown-button" onclick="toggleDropdown('single-problems-dropdown', true)">
+                            <span id="single-problems-label">Wybierz zadanie...</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="checkbox-dropdown-list" id="single-problems-list">
+                            <div class="checkbox-item">Załaduj problemy.json</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="single-code">Kod źródłowy:</label>
@@ -120,7 +133,6 @@
                 <button class="btn btn-primary" onclick="singleSubmit()">Wyślij Submit</button>
             </div>
 
-            <!-- Multi-Submit -->
             <div class="section">
                 <h2>🚀 Multi-Submit (wiele zadań)</h2>
                 <div class="form-group">
@@ -171,11 +183,10 @@
                 <button class="btn btn-success" onclick="multiSubmit()">Wyślij Multi-Submit</button>
             </div>
 
-            <!-- SYBAU Submit -->
             <div class="section">
                 <h2>🔥 Multi-Spam Submit</h2>
                 <div class="info-box">
-                    <strong>⚡ Multi-Spam:</strong> Wysyła Randomowy kod do wielu zadań jednocześnie! Wybierz zadania z checkboxów lub wpisz ręcznie.
+                    <strong>⚡ Multi-Spam:</strong> Wysyła randomowy kod do wielu zadań jednocześnie! Wybierz zadania z checkboxów lub wpisz ręcznie.
                 </div>
                 <div class="form-group">
                     <label>Wybierz sposób wprowadzania zadań:</label>
@@ -217,7 +228,6 @@
                 <button class="btn btn-warning" onclick="multiSybauSubmit()">🔥 Wyślij Multi-SYBAU</button>
             </div>
 
-            <!-- Logi -->
             <div class="section">
                 <h2>📊 Logi Submitów</h2>
                 <div class="logs-controls">
@@ -241,8 +251,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

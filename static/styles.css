@@ -1,4 +1,3 @@
-/* static/styles.css */
 * {
     margin: 0;
     padding: 0;
@@ -8,7 +7,6 @@ body {
     font-family: "SUSE Mono", sans-serif;
     background: #4e342e;
     min-height: 100vh;
-    padding: 20px;
 }
 .container {
     max-width: 1400px;
@@ -117,6 +115,9 @@ input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:foc
     border-color: #ffb300;
     box-shadow: 0 0 5px rgba(255, 179, 0, 0.5);
     border-radius: 10px;
+}
+input:hover{
+    border-color: #ffb300;
 }
 textarea {
     resize: vertical;
@@ -229,20 +230,21 @@ tr:hover {
     position: relative;
     width: 100%;
     user-select: none;
+    border-radius: 5px;
 }
 
 .checkbox-dropdown-button {
     width: 100%;
     padding: 12px;
-    border-radius: 15px;
+    border-radius: 3px;
     border: 1px solid #9e9e9e;
-    border-radius: 2px;
     background-color: white;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    transition: all 0.3s;
+    text-decoration: none;
 }
 
 .checkbox-dropdown-button:hover {
@@ -252,6 +254,10 @@ tr:hover {
 .checkbox-dropdown.active .checkbox-dropdown-button {
     border-color: #ffb300;
     box-shadow: 0 0 5px rgba(255, 179, 0, 0.5);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
 .checkbox-dropdown-button .arrow {
@@ -274,7 +280,7 @@ tr:hover {
     background: white;
     border: 1px solid #9e9e9e;
     border-top: none;
-    border-radius: 0 0 2px 2px;
+    border-radius: 0; 
     z-index: 1000;
     transition: max-height 0.3s ease, border 0.3s;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -284,20 +290,28 @@ tr:hover {
     max-height: 300px;
     overflow-y: auto;
     border-color: #ffb300;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-top: 1px solid #ffb300; 
 }
 
 .checkbox-item {
-    padding: 10px 12px;
+    padding: 10px 1px;
     display: flex;
     align-items: center;
     cursor: pointer;
     transition: background-color 0.2s;
     border-bottom: 1px solid #f0f0f0;
 }
+.checkbox-item input[type=radio],
+.checkbox-item input[type=checkbox] {
+    opacity: 0;
+}
 
 .checkbox-item:last-child {
     border-bottom: none;
-    border-radius: 0px, 0px, 15px, 15px;
+    border-bottom-left-radius: 12px; 
+    border-bottom-right-radius: 12px;
 }
 
 .checkbox-item:hover {
@@ -326,16 +340,13 @@ tr:hover {
 .checkbox-dropdown-list::-webkit-scrollbar {
     width: 8px;
 }
-
 .checkbox-dropdown-list::-webkit-scrollbar-track {
     background: #f5f5f5;
 }
-
 .checkbox-dropdown-list::-webkit-scrollbar-thumb {
     background: #9e9e9e;
     border-radius: 4px;
 }
-
 .checkbox-dropdown-list::-webkit-scrollbar-thumb:hover {
     background: #795548;
 }
@@ -347,13 +358,11 @@ tr:hover {
     gap: 20px;
     margin-bottom: 20px;
 }
-
 .left-column {
     display: flex;
     flex-direction: column;
     gap: 0;
 }
-
 .right-column {
     display: flex;
     flex-direction: column;
@@ -368,41 +377,34 @@ tr:hover {
     flex-direction: column;
     background: #f5f5f5;
 }
-
 #token-db-container {
     overflow-y: auto;
     flex: 1;
     background: white;
     border-radius: 4px;
 }
-
 #token-db-table {
     margin: 0;
     font-size: 13px;
 }
-
 #token-db-table th {
     position: sticky;
     top: 0;
     z-index: 10;
     background: #5d4037;
 }
-
 .token-contest-name {
     font-weight: 600;
     color: #5d4037;
 }
-
 .token-value {
     font-family: 'Courier New', monospace;
     color: #666;
     letter-spacing: 2px;
 }
-
 .token-actions {
     white-space: nowrap;
 }
-
 .btn-mini {
     padding: 5px 10px;
     font-size: 12px;
@@ -414,25 +416,20 @@ tr:hover {
     text-transform: uppercase;
     font-weight: 600;
 }
-
 .btn-copy {
     background: #616161;
     color: white;
 }
-
 .btn-copy:hover {
     background: #424242;
 }
-
 .btn-use {
     background: #ffb300;
     color: #424242;
 }
-
 .btn-use:hover {
     background: #ffa000;
 }
-
 .btn-mini:active {
     transform: scale(0.95);
 }
@@ -441,16 +438,13 @@ tr:hover {
 #token-db-container::-webkit-scrollbar {
     width: 8px;
 }
-
 #token-db-container::-webkit-scrollbar-track {
     background: #f5f5f5;
 }
-
 #token-db-container::-webkit-scrollbar-thumb {
     background: #9e9e9e;
     border-radius: 4px;
 }
-
 #token-db-container::-webkit-scrollbar-thumb:hover {
     background: #795548;
 }
@@ -465,4 +459,12 @@ tr:hover {
     .right-column {
         order: -1;
     }
+}
+
+/* ============ NOWE ============ */
+.checkbox-item.selected {
+    background-color: #ffe082 !important;
+}
+.checkbox-item.selected:hover {
+    background-color: #ffd54f !important;
 }
