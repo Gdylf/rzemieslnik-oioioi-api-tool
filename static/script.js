@@ -164,7 +164,7 @@ async function loadProblemsData(data) {
         inputSingle.id = "p-" + problem.short_name;
         const labelSingle = document.createElement('label');
         labelSingle.setAttribute("for", inputSingle.id);
-        labelSingle.textContent = `${problem.short_name} (${problem.name})`;
+        labelSingle.textContent = `${problem.short_name} (${problem.full_name})`;
 
         inputSingle.addEventListener("change", () => {
             listSingle.querySelectorAll(".checkbox-item").forEach(el => el.classList.remove("selected"));
@@ -186,7 +186,7 @@ async function loadProblemsData(data) {
         inputMulti.id = "m-" + problem.short_name;
         const labelMulti = document.createElement('label');
         labelMulti.setAttribute("for", inputMulti.id);
-        labelMulti.textContent = `${problem.short_name} (${problem.name})`;
+        labelMulti.textContent = `${problem.short_name} (${problem.full_name})`;
 
         inputMulti.addEventListener("change", () => {
             if (inputMulti.checked) itemMulti.classList.add("selected");
@@ -207,7 +207,7 @@ async function loadProblemsData(data) {
         inputSybau.id = "s-" + problem.short_name;
         const labelSybau = document.createElement('label');
         labelSybau.setAttribute("for", inputSybau.id);
-        labelSybau.textContent = `${problem.short_name} (${problem.name})`;
+        labelSybau.textContent = `${problem.short_name} (${problem.full_name})`;
 
         inputSybau.addEventListener("change", () => {
             if (inputSybau.checked) itemSybau.classList.add("selected");
