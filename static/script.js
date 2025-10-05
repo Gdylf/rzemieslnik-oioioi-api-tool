@@ -60,22 +60,26 @@ async function loadTokens() {
         if (!response.ok) {
             throw new Error(`Błąd HTTP: ${response.status}`);
         }
-        tokensData = await response.json();
+        const rawTokens = await response.json();
 
         tbody.innerHTML = '';
-        if (tokensData.length === 0) {
+        if (rawTokens.length === 0) {
             tbody.innerHTML = `<tr><td colspan="3" class="logs-empty">Brak zapisanych tokenów.</td></tr>`;
             return;
         }
 
-        tokensData.forEach(item => {
+        rawTokens.forEach(entry => {
+            // entry wygląda tak: { "Tomasz Milkowski": "token" }
+            const contestName = Object.keys(entry)[0];
+            const tokenValue = entry[contestName];
+
             const newRow = tbody.insertRow(-1);
             newRow.innerHTML = `
-                <td class="token-contest-name">${item.contest}</td>
-                <td class="token-value" title="${item.token}">${item.token.substring(0, 8)}...</td>
+                <td class="token-contest-name">${contestName}</td>
+                <td class="token-value" title="${tokenValue}">${tokenValue.substring(0, 8)}...</td>
                 <td class="token-actions">
-                    <button class="btn-mini btn-copy" onclick="copyToken('${item.token}')">Kopiuj</button>
-                    <button class="btn-mini btn-use" onclick="useToken('${item.token}')">Użyj</button>
+                    <button class="btn-mini btn-copy" onclick="copyToken('${tokenValue}')">Kopiuj</button>
+                    <button class="btn-mini btn-use" onclick="useToken('${tokenValue}')">Użyj</button>
                 </td>
             `;
         });
@@ -85,7 +89,6 @@ async function loadTokens() {
         tbody.innerHTML = `<tr><td colspan="3" class="logs-empty status-fail">Nie udało się załadować bazy tokenów.</td></tr>`;
     }
 }
-
 // ================== Problemy ==================
 function setupDropZone() {
     const dropZone = document.getElementById('problemy-drop');
