@@ -14,22 +14,22 @@ Projekt udostępniony na licencji GPL-3.0.
 Wymagania
 ---------
 - Python 3.x
-- Zainstalowane biblioteki:
-  -concurrent
-  -datetime
-  -flask
-  -flask_cors
-  -json
-  -os
-  -pyautogui
-  -pyperclip
-  -requests
-  -short_name_fetcher
-  -sys
-  -threading
-  -time
-  -tkinter
-  -webbrowser
+- Zainstalowane biblioteki:<br/>
+  -concurrent<br/>
+  -datetime<br/>
+  -flask<br/>
+  -flask_cors<br/>
+  -json<br/>
+  -os<br/>
+  -pyautogui<br/>
+  -pyperclip<br/>
+  -requests<br/>
+  -short_name_fetcher<br/>
+  -sys<br/>
+  -threading<br/>
+  -time<br/>
+  -tkinter<br/>
+  -webbrowser<br/>
 
 
 Instalacja
