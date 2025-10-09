@@ -1,253 +1,377 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rzemieślnik OIOIOI API Client</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=SUSE+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Rzemieślnicy Inc.</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Kumar+One&display=swap');
+    </style>
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- feather icons -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+    <style>
+        /* small UI tweaks to match script behaviour */
+        body{
+            font-family: "PT Sans", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+        h1, h2{
+            font-family: "Kumar One", serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+        .dropzone-active, .drag-over {
+            border-color: #8b5cf6 !important;
+            background-color: rgba(139, 92, 246, 0.06) !important;
+        }
+        .checkbox-item {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            padding: .45rem .6rem;
+            cursor: pointer;
+            border-radius: .375rem;
+        }
+        .checkbox-item.selected {
+            background-color: rgba(139, 92, 246, 0.12);
+        }
+        .checkbox-item input {
+            accent-color: #8b5cf6;
+        }
+        .status-ok { color: #34d399; font-weight: 600; }
+        .status-fail { color: #fb7185; font-weight: 600; }
+        .logs-empty { color: #9ca3af; text-align: center; padding: 1rem 0; }
+        .btn-mini { padding: .25rem .5rem; border-radius: .375rem; font-size: .75rem; font-family: "PT Sans", sans-serif; font-weight: 400; font-style: normal; }
+        .btn-copy { background: #374151; color: #e5e7eb; border: none; }
+        .btn-use { background: #8b5cf6; color: white; border: none; }
+        .status-message { font-size: .9rem; margin-top: .5rem; }
+        .response-text { max-width: 40ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
 </head>
-<body>
-    <div class="header">
-            <h1>🛠️ Rzemieślnik Wyzwania Client</h1>
-            <p>Narzędzie do wysyłania submitów na platformę Wyzwania Programuj</p>
+<body class="dark bg-gray-900 text-gray-200 min-h-screen">
+    <div class="container mx-auto max-w-7xl bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-700">
+        <div class="header bg-gradient-to-r from-blue-900 to-violet-900 p-8 text-center border-b border-gray-700">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2 text-white">Rzemieślnicy Inc.</h1>
         </div>
-        
-        <div class="content">
-            <div class="top-section">
-                <div class="left-column">
-                    <div class="info-box">
-                        <strong>📋 Instrukcja:</strong> Wprowadź swój token API, wybierz kontest i przeciągnij plik problemy.json aby aktywować pełną funkcjonalność.
+
+        <div class="content p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Info Box -->
+                    <div class="bg-blue-900/20 p-4 rounded-lg border border-blue-800/50">
+                        <strong class="text-blue-400">📋 Instrukcja:</strong>
+                        <span class="text-blue-100">Wprowadź swój token API, wybierz kontest i przeciągnij plik <code>problemy.json</code> aby aktywować pełną funkcjonalność.</span>
                     </div>
 
-                    <div class="section">
-                        <h2>📁 Załaduj problemy.json</h2>
-                        <div class="drop-zone" id="problemy-drop">
-                            <div class="drop-zone-icon">🎯</div>
-                            <div class="drop-zone-text">Problemy.json</div>
-                            <div class="drop-zone-subtext">Kliknij lub przeciągnij plik</div>
-                            <input type="file" class="file-input-hidden" id="problemy-file" accept=".json">
+                    <!-- Problems.json Drop Zone -->
+                    <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
+                        <h2 class="text-xl font-semibold mb-4 text-violet-300">📁 Załaduj problemy.json</h2>
+                        <div id="problemy-drop" class="dropzone border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-violet-400 bg-gray-700/30">
+                            <div class="text-4xl mb-2 text-violet-400">🎯</div>
+                            <div class="font-medium text-gray-200">Problemy.json</div>
+                            <div class="text-sm text-gray-400">Kliknij lub przeciągnij plik tutaj</div>
+                            <input type="file" class="hidden" id="problemy-file" accept=".json">
                         </div>
-                        <div id="problemy-status" style="color: #795548; font-size: 14px;"></div>
+                        <div id="problemy-status" class="text-sm mt-2 text-blue-300"></div>
                     </div>
 
-                    <div class="section">
-                        <h2>🌐 Wybór Kontestu</h2>
-                        <div class="form-group">
-                            <label for="contest-select">Nazwa Kontestu:</label>
-                            <div class="checkbox-dropdown" id="contest-dropdown">
-                                <div class="checkbox-dropdown-button" onclick="toggleDropdown('contest-dropdown')">
-                                    <span id="contest-label">Ładowanie kontestów...</span>
-                                    <span class="arrow">▼</span>
+                    <!-- Contest Selection -->
+                    <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
+                        <h2 class="text-xl font-semibold mb-4 text-violet-300">🌐 Wybór kontestu</h2>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Nazwa kontestu:</label>
+                            <div id="contest-dropdown" class="relative inline-block w-full text-left">
+                                <div id="contest-dropdown-button" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors" onclick="toggleDropdown('contest-dropdown')">
+                                    <span id="contest-label" data-value="">Ładowanie kontestów...</span>
+                                    <i data-feather="chevron-down" class="text-gray-400"></i>
                                 </div>
-                                <div class="checkbox-dropdown-list" id="contest-list">
-                                    <div class="checkbox-item">Ładowanie...</div>
+
+                                <div id="contest-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden">
+                                    <div class="p-2 text-gray-400">Ładowanie...</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-
-                    <div class="section">
-                        <h2>🔑 Autoryzacja (Token API)</h2>
-                        <div class="form-group">
-                            <label for="token">Token API:</label>
-                            <input type="text" id="token" placeholder="Wklej swój token API...">
+                    <!-- API Token Authorization -->
+                    <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
+                        <h2 class="text-xl font-semibold mb-4 text-violet-300">🔑 Autoryzacja (Token API)</h2>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Token API:</label>
+                            <input type="text" id="token" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="Wklej swój token API...">
                         </div>
-                        <button class="btn btn-info" onclick="checkToken()">Sprawdź Token</button>
-                        <div id="token-status" class="status-message"></div>
+                        <button id="check-token-btn" onclick="checkToken()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center">
+                            <i data-feather="key" class="mr-2 w-4"></i> Sprawdź token
+                        </button>
+                        <div id="token-status" class="mt-2 text-sm status-message"></div>
                     </div>
                 </div>
 
-                <div class="right-column">
-                    <div class="section token-database">
-                        <h2>🗄️ Baza Tokenów</h2>
-                        <div id="token-db-container">
-                            <table id="token-db-table">
-                                <thead>
+                <!-- Right Column - Token Database -->
+                <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary h-fit sticky top-6">
+                    <h2 class="text-xl font-semibold mb-4 text-violet-300">🗄️ Baza tokenów</h2>
+                    <div class="bg-gray-800 rounded-md overflow-hidden">
+                        <div class="overflow-auto max-h-96">
+                            <table class="w-full">
+                                <thead class="bg-gray-900">
                                     <tr>
-                                        <th>Nazwa Kontestu</th>
-                                        <th>Token</th>
-                                        <th>Akcje</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Nazwa kontestu</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Token</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Akcje</th>
                                     </tr>
                                 </thead>
-                                <tbody id="token-db-body">
-                                    <tr><td colspan="3" class="logs-empty">Ładowanie tokenów...</td></tr>
+                                <tbody id="token-db-body" class="divide-y divide-gray-700">
+                                    <tr>
+                                        <td colspan="3" class="px-4 py-4 text-center text-gray-400">Ładowanie tokenów...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="section">
-                <h2>📤 Pojedynczy Submit</h2>
-                <div class="form-group">
-                    <label>Wybierz sposób wprowadzania zadania:</label>
-                    <div style="margin: 10px 0;">
-                        <label style="display: inline; margin-right: 20px;">
-                            <input type="radio" name="single-mode" value="manual" checked onchange="toggleSingleMode()"> Wpisz short name
+
+            <!-- Single Submit Section -->
+            <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-violet-300">📤 Pojedynczy submit</h2>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz sposób wprowadzania zadania:</label>
+                    <div class="flex space-x-6">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="single-mode" value="manual" checked onchange="toggleSingleMode()" class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2">Wpisz short name</span>
                         </label>
-                        <label style="display: inline;">
-                            <input type="radio" name="single-mode" value="dropdown" onchange="toggleSingleMode()"> Wybierz z listy
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="single-mode" value="dropdown" onchange="toggleSingleMode()" class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2">Wybierz z listy</span>
                         </label>
                     </div>
                 </div>
-                <div id="single-manual-input" class="form-group">
-                    <label for="single-problem-text">Short Name Zadania:</label>
-                    <input type="text" id="single-problem-text" placeholder="np. wiel_szyfr">
+
+                <div id="single-manual-input" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Short name zadania:</label>
+                    <input type="text" id="single-problem-text" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="np. wiel_szyfr">
                 </div>
-                
-                <div id="single-dropdown-input" class="form-group" style="display: none;">
-                    <label>Wybierz zadanie:</label>
-                    <div class="checkbox-dropdown" id="single-problems-dropdown">
-                        <div class="checkbox-dropdown-button" onclick="toggleDropdown('single-problems-dropdown', true)">
+
+                <div id="single-dropdown-input" class="mb-4 hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz zadanie:</label>
+                    <div id="single-problems-dropdown" class="relative inline-block w-full text-left">
+                        <div id="single-problems-dropdown-button" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors" onclick="toggleDropdown('single-problems-dropdown', true)">
                             <span id="single-problems-label">Wybierz zadanie...</span>
-                            <span class="arrow">▼</span>
+                            <i data-feather="chevron-down" class="text-gray-400"></i>
                         </div>
-                        <div class="checkbox-dropdown-list" id="single-problems-list">
-                            <div class="checkbox-item">Załaduj problemy.json</div>
+
+                        <div id="single-problems-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden">
+                            <div class="p-2 text-gray-400">Załaduj problemy.json</div>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="single-code">Kod źródłowy:</label>
-                    <textarea id="single-code" rows="10" placeholder="Wklej kod tutaj..."></textarea>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Kod źródłowy:</label>
+                    <textarea id="single-code" rows="10" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="Wklej swój kod tutaj..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="single-file">Lub wybierz plik:</label>
-                    <input type="file" id="single-file">
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Lub wybierz plik:</label>
+                    <input type="file" id="single-file" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
                 </div>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label for="single-repeat">Liczba powtórzeń:</label>
-                        <input type="number" id="single-repeat" value="1" min="1">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Liczba powtórzeń:</label>
+                        <input type="number" id="single-repeat" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
                     </div>
-                    <div class="form-group">
-                        <label for="single-concurrency">Równoległość (max. wątków):</label>
-                        <input type="number" id="single-concurrency" value="5" min="1" max="20">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Maks. wątki:</label>
+                        <input type="number" id="single-concurrency" value="5" min="1" max="20" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="singleSubmit()">Wyślij Submit</button>
+
+                <button onclick="singleSubmit()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors flex items-center justify-center w-full">
+                    <i data-feather="send" class="mr-2 w-4"></i> Wyślij submit
+                </button>
             </div>
 
-            <div class="section">
-                <h2>🚀 Multi-Submit (wiele zadań)</h2>
-                <div class="form-group">
-                    <label>Wybierz sposób wprowadzania zadań:</label>
-                    <div style="margin: 10px 0;">
-                        <label style="display: inline; margin-right: 20px;">
-                            <input type="radio" name="multi-mode" value="manual" checked onchange="toggleMultiMode()"> Ręcznie (po przecinku)
+            <!-- Multi-Submit Section -->
+            <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-violet-300">🚀 Multi-Submit</h2>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz sposób wprowadzania zadań:</label>
+                    <div class="flex space-x-6">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="multi-mode" value="manual" checked onchange="toggleMultiMode()" class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2">Ręcznie (po przecinku)</span>
                         </label>
-                        <label style="display: inline;">
-                            <input type="radio" name="multi-mode" value="dropdown" onchange="toggleMultiMode()"> Z listy (checkboxy)
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="multi-mode" value="dropdown" onchange="toggleMultiMode()" class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2">Wybierz z listy</span>
                         </label>
                     </div>
                 </div>
-                <div id="multi-manual-input" class="form-group">
-                    <label for="multi-problems-text">Short Names zadań (po przecinku):</label>
-                    <input type="text" id="multi-problems-text" placeholder="wiel_szyfr,wiel_trasy,wiel_wieloryb">
+
+                <div id="multi-manual-input" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Short names zadań (po przecinku):</label>
+                    <input type="text" id="multi-problems-text" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="wiel_szyfr,wiel_trasy,wiel_wieloryb">
                 </div>
-                <div id="multi-dropdown-input" class="form-group" style="display: none;">
-                    <label>Wybierz zadania:</label>
-                    <div class="checkbox-dropdown" id="multi-problems-dropdown">
-                        <div class="checkbox-dropdown-button" onclick="toggleDropdown('multi-problems-dropdown')">
+
+                <div id="multi-dropdown-input" class="mb-4 hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz zadania:</label>
+                    <div id="multi-problems-dropdown" class="relative inline-block w-full text-left">
+                        <div id="multi-problems-dropdown-button" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors" onclick="toggleDropdown('multi-problems-dropdown')">
                             <span id="multi-problems-label">Wybierz zadania...</span>
-                            <span class="arrow">▼</span>
+                            <i data-feather="chevron-down" class="text-gray-400"></i>
                         </div>
-                        <div class="checkbox-dropdown-list" id="multi-problems-list">
-                            <div class="checkbox-item">Ładowanie...</div>
+
+                        <div id="multi-problems-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden">
+                            <div class="p-2 text-gray-400">Ładowanie...</div>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="multi-code">Kod źródłowy:</label>
-                    <textarea id="multi-code" rows="10" placeholder="Wklej kod tutaj..."></textarea>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Kod źródłowy:</label>
+                    <textarea id="multi-code" rows="10" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="Wklej kod tutaj..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="multi-file">Lub wybierz plik:</label>
-                    <input type="file" id="multi-file">
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Lub wybierz plik:</label>
+                    <input type="file" id="multi-file" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
                 </div>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label for="multi-repeat">Liczba powtórzeń na zadanie:</label>
-                        <input type="number" id="multi-repeat" value="1" min="1">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Powtórzeń na zadanie:</label>
+                        <input type="number" id="multi-repeat" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
                     </div>
-                    <div class="form-group">
-                        <label for="multi-concurrency">Równoległość (max. wątków):</label>
-                        <input type="number" id="multi-concurrency" value="10" min="1" max="20">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Maks. wątki:</label>
+                        <input type="number" id="multi-concurrency" value="10" min="1" max="20" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
                     </div>
                 </div>
-                <button class="btn btn-success" onclick="multiSubmit()">Wyślij Multi-Submit</button>
+
+                <button onclick="multiSubmit()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition-colors flex items-center justify-center w-full">
+                    <i data-feather="send" class="mr-2 w-4"></i> Wyślij Multi-Submit
+                </button>
             </div>
 
-            <div class="section">
-                <h2>🔥 Multi-Spam Submit</h2>
-                <div class="form-group">
-                    <label>Wybierz sposób wprowadzania zadań:</label>
-                    <div style="margin: 10px 0;">
-                        <label style="display: inline; margin-right: 20px;">
-                            <input type="radio" name="multi-sybau-mode" value="manual" checked onchange="toggleMultiSybauMode()"> Ręcznie (po przecinku)
+            <!-- Multi-Sybau Section -->
+            <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-violet-300">🔥 Multi-SYBAU Submit</h2>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz sposób wprowadzania zadań:</label>
+                    <div class="flex space-x-6">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="multi-sybau-mode" value="manual" checked onchange="toggleMultiSybauMode()" class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2">Ręcznie (po przecinku)</span>
                         </label>
-                        <label style="display: inline;">
-                            <input type="radio" name="multi-sybau-mode" value="dropdown" onchange="toggleMultiSybauMode()"> Z listy (checkboxy)
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="multi-sybau-mode" value="dropdown" onchange="toggleMultiSybauMode()" class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2">Wybierz z listy</span>
                         </label>
                     </div>
                 </div>
-                <div id="multi-sybau-manual-input" class="form-group">
-                    <label for="multi-sybau-problems-text">Short Names zadań (po przecinku):</label>
-                    <input type="text" id="multi-sybau-problems-text" placeholder="dnt,drw,tro">
+
+                <div id="multi-sybau-manual-input" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Short names zadań (po przecinku):</label>
+                    <input type="text" id="multi-sybau-problems-text" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="dnt,drw,tro">
                 </div>
-                <div id="multi-sybau-dropdown-input" class="form-group" style="display: none;">
-                    <label>Wybierz zadania:</label>
-                    <div class="checkbox-dropdown" id="multi-sybau-problems-dropdown">
-                        <div class="checkbox-dropdown-button" onclick="toggleDropdown('multi-sybau-problems-dropdown')">
+
+                <div id="multi-sybau-dropdown-input" class="mb-4 hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz zadania:</label>
+                    <div id="multi-sybau-problems-dropdown" class="relative inline-block w-full text-left">
+                        <div id="multi-sybau-problems-dropdown-button" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors" onclick="toggleDropdown('multi-sybau-problems-dropdown')">
                             <span id="multi-sybau-problems-label">Wybierz zadania...</span>
-                            <span class="arrow">▼</span>
+                            <i data-feather="chevron-down" class="text-gray-400"></i>
                         </div>
-                        <div class="checkbox-dropdown-list" id="multi-sybau-problems-list">
-                            <div class="checkbox-item">Ładowanie...</div>
+
+                        <div id="multi-sybau-problems-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden">
+                            <div class="p-2 text-gray-400">Ładowanie...</div>
                         </div>
                     </div>
                 </div>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label for="multi-sybau-repeat">Liczba powtórzeń na zadanie:</label>
-                        <input type="number" id="multi-sybau-repeat" value="1" min="1">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Powtórzeń na zadanie:</label>
+                        <input type="number" id="multi-sybau-repeat" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
                     </div>
-                    <div class="form-group">
-                        <label for="multi-sybau-concurrency">Równoległość (max. wątków):</label>
-                        <input type="number" id="multi-sybau-concurrency" value="10" min="1" max="20">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Maks. wątki:</label>
+                        <input type="number" id="multi-sybau-concurrency" value="10" min="1" max="20" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
                     </div>
                 </div>
-                <button class="btn btn-warning" onclick="multiSybauSubmit()">Wyślij Multi-Spam</button>
+
+                <button onclick="multiSybauSubmit()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-md font-medium transition-colors flex items-center justify-center w-full">
+                    <i data-feather="zap" class="mr-2 w-4"></i> Wyślij Multi-SYBAU
+                </button>
             </div>
 
-            <div class="section">
-                <h2>📊 Logi Submitów</h2>
-                <div class="logs-controls">
-                    <button class="btn btn-info" onclick="refreshLogs()">Odśwież Logi</button>
-                    <button class="btn btn-warning" onclick="clearLogs()">Wyczyść Logi</button>
+            <!-- Logs -->
+            <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-violet-300">📊 Logi submitów</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="refreshLogs()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <i data-feather="refresh-cw" class="mr-2 w-4"></i> Odśwież
+                        </button>
+                        <button onclick="clearLogs()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <i data-feather="trash-2" class="mr-2 w-4"></i> Wyczyść
+                        </button>
+                    </div>
                 </div>
-                <div id="logs-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Czas</th>
-                                <th>Short Name</th>
-                                <th>Status</th>
-                                <th>Odpowiedź Serwera</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logs-body">
-                            <tr><td colspan="4" class="logs-empty">Brak logów. Wyślij pierwszy submit!</td></tr>
-                        </tbody>
-                    </table>
+
+                <div class="bg-gray-800 rounded-md overflow-hidden">
+                    <div class="overflow-auto max-h-96">
+                        <table class="w-full">
+                            <thead class="bg-gray-900">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Czas</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Short name (kontest)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Odpowiedź serwera</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-body" class="divide-y divide-gray-700">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-4 text-center text-gray-400">Brak logów. Wyślij pierwszy submit!</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
         </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    </div>
+
+    <!-- load script.js: adjust path if you serve it from /static/script.js -->
+    <script src="static/script.js"></script>
+    <script>
+        feather.replace();
+    </script>
 </body>
 </html>

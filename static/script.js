@@ -1,4 +1,6 @@
-const API_URL = "http://127.0.0.1:4000";
+// script.js
+// Relative API base -> empty string so endpoints become e.g. /check_token
+const API_URL = "" ;
 let problemsData = [];
 let tokensData = {};
 
@@ -27,7 +29,8 @@ async function loadContests() {
             div.onclick = () => {
                 label.textContent = c.name;
                 label.dataset.value = c.id;
-                document.getElementById("contest-dropdown").classList.remove("active");
+                // hide list
+                document.getElementById("contest-list").classList.add("hidden");
             };
             list.appendChild(div);
         });
@@ -63,7 +66,7 @@ async function loadTokens() {
         const rawTokens = await response.json();
 
         tbody.innerHTML = '';
-        if (rawTokens.length === 0) {
+        if (!rawTokens || rawTokens.length === 0) {
             tbody.innerHTML = `<tr><td colspan="3" class="logs-empty">Brak zapisanych tokenów.</td></tr>`;
             return;
         }
@@ -75,10 +78,10 @@ async function loadTokens() {
 
             const newRow = tbody.insertRow(-1);
             newRow.innerHTML = `
-                <td class="token-contest-name">${contestName}</td>
-                <td class="token-value" title="${tokenValue}">${tokenValue.substring(0, 8)}...</td>
-                <td class="token-actions">
-                    <button class="btn-mini btn-copy" onclick="copyToken('${tokenValue}')">Kopiuj</button>
+                <td class="token-contest-name px-4 py-2">${contestName}</td>
+                <td class="token-value px-4 py-2" title="${tokenValue}">${tokenValue.substring(0, 8)}...</td>
+                <td class="token-actions px-4 py-2">
+                    <button class="btn-mini btn-copy mr-2" onclick="copyToken('${tokenValue}')">Kopiuj</button>
                     <button class="btn-mini btn-use" onclick="useToken('${tokenValue}')">Użyj</button>
                 </td>
             `;
@@ -89,6 +92,7 @@ async function loadTokens() {
         tbody.innerHTML = `<tr><td colspan="3" class="logs-empty status-fail">Nie udało się załadować bazy tokenów.</td></tr>`;
     }
 }
+
 // ================== Problemy ==================
 function setupDropZone() {
     const dropZone = document.getElementById('problemy-drop');
@@ -225,6 +229,7 @@ async function loadProblemsData(data) {
     updateMultiLabel('sybau');
     updateSingleProblemLabel();
 }
+
 // ================== Tryby inputów ==================
 function toggleSingleMode() {
     const isDropdown = document.querySelector('input[name="single-mode"]:checked').value === 'dropdown';
@@ -250,15 +255,21 @@ function toggleDropdown(dropdownId, isSingleSelection = false) {
     const dropdown = document.getElementById(dropdownId);
     if (!dropdown) return;
 
+    // for single-problems-dropdown, ensure problems loaded
     if (dropdownId === 'single-problems-dropdown' && problemsData.length === 0 && !dropdown.classList.contains('active')) {
         alert('Najpierw załaduj plik problemy.json!');
         return;
     }
 
-    dropdown.classList.toggle('active');
-
-    if (isSingleSelection && event && event.target.type === 'radio') {
-        dropdown.classList.remove('active');
+    // toggle active class on the dropdown container
+    const list = dropdown.querySelector('div[id$="-list"]') || dropdown.querySelector('#' + dropdownId.replace('-dropdown', '-list'));
+    // toggle visibility of the list element:
+    if (list) {
+        const hidden = list.classList.contains('hidden');
+        if (hidden) list.classList.remove('hidden');
+        else list.classList.add('hidden');
+    } else {
+        dropdown.classList.toggle('active');
     }
 }
 
@@ -275,6 +286,7 @@ function updateSingleProblemLabel() {
 function updateMultiLabel(type) {
     const list = document.getElementById(`${type}-problems-list`);
     const label = document.getElementById(`${type}-problems-label`);
+    if (!list || !label) return;
     const checkedItems = list.querySelectorAll('input[type="checkbox"]:checked');
     const count = checkedItems.length;
 
@@ -290,7 +302,8 @@ function updateMultiLabel(type) {
 // ================== Helpers ==================
 async function getCode(codeId, fileId) {
     const code = document.getElementById(codeId).value;
-    const file = document.getElementById(fileId).files[0];
+    const fileInput = document.getElementById(fileId);
+    const file = fileInput ? fileInput.files[0] : null;
     if (code) return code;
     if (file) {
         return new Promise((resolve, reject) => {
@@ -305,6 +318,7 @@ async function getCode(codeId, fileId) {
 
 function getProblemsFromDropdown(type) {
     const list = document.getElementById(`${type}-problems-list`);
+    if (!list) return [];
     if (type === 'single') {
         const checkedRadio = list.querySelector('input[name="single_problem_radio"]:checked');
         return checkedRadio ? [checkedRadio.value] : [];
@@ -316,7 +330,7 @@ function getProblemsFromDropdown(type) {
 // ================== Submisje ==================
 async function performSubmit(endpoint, payload) {
     try {
-        const response = await fetch(`${API_URL}/${endpoint}`, {
+        const response = await fetch(`${API_URL}/${endpoint}`.replace('//', '/'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -325,7 +339,7 @@ async function performSubmit(endpoint, payload) {
         if (data.success) {
             alert(`Sukces! ${data.message}`);
         } else {
-            alert(`Błąd: ${data.error}`);
+            alert(`Błąd: ${data.error || data.message || JSON.stringify(data)}`);
         }
         refreshLogs();
     } catch (error) {
@@ -335,11 +349,11 @@ async function performSubmit(endpoint, payload) {
 }
 
 async function singleSubmit() {
-    const token = document.getElementById('token').value;
+    const token = document.getElementById('token').value.trim();
     const contest = getSelectedContestId();
     const repeat = document.getElementById('single-repeat').value;
     const concurrency = document.getElementById('single-concurrency').value;
-    let problem = document.getElementById('single-problem-text').value;
+    let problem = document.getElementById('single-problem-text').value.trim();
 
     const isDropdown = document.querySelector('input[name="single-mode"]:checked').value === 'dropdown';
     if (isDropdown) {
@@ -369,11 +383,11 @@ async function singleSubmit() {
 }
 
 async function multiSubmit() {
-    const token = document.getElementById('token').value;
+    const token = document.getElementById('token').value.trim();
     const contest = getSelectedContestId();
     const repeat = document.getElementById('multi-repeat').value;
     const concurrency = document.getElementById('multi-concurrency').value;
-    let problemsStr = document.getElementById('multi-problems-text').value;
+    let problemsStr = document.getElementById('multi-problems-text').value.trim();
 
     const isDropdown = document.querySelector('input[name="multi-mode"]:checked').value === 'dropdown';
     if (isDropdown) problemsStr = getProblemsFromDropdown('multi').join(',');
@@ -400,11 +414,11 @@ async function multiSubmit() {
 }
 
 async function multiSybauSubmit() {
-    const token = document.getElementById('token').value;
+    const token = document.getElementById('token').value.trim();
     const contest = getSelectedContestId();
     const repeat = document.getElementById('multi-sybau-repeat').value;
     const concurrency = document.getElementById('multi-sybau-concurrency').value;
-    let problemsStr = document.getElementById('multi-sybau-problems-text').value;
+    let problemsStr = document.getElementById('multi-sybau-problems-text').value.trim();
 
     const isDropdown = document.querySelector('input[name="multi-sybau-mode"]:checked').value === 'dropdown';
     if (isDropdown) problemsStr = getProblemsFromDropdown('sybau').join(',');
@@ -436,7 +450,7 @@ function copyToken(token) {
 }
 
 async function checkToken() {
-    const token = document.getElementById('token').value;
+    const token = document.getElementById('token').value.trim();
     const statusDiv = document.getElementById('token-status');
     statusDiv.textContent = 'Sprawdzanie...';
     statusDiv.className = 'status-message';
@@ -456,13 +470,17 @@ async function checkToken() {
         const data = await response.json();
         if (data.valid) {
             statusDiv.textContent = `Zalogowano jako: ${data.username}`;
+            statusDiv.classList.remove('status-fail');
             statusDiv.classList.add('status-ok');
         } else {
             statusDiv.textContent = `Błąd tokena: ${data.error}`;
+            statusDiv.classList.remove('status-ok');
             statusDiv.classList.add('status-fail');
         }
-    } catch {
+    } catch (e) {
+        console.error(e);
         statusDiv.textContent = 'Błąd komunikacji z serwerem API.';
+        statusDiv.classList.remove('status-ok');
         statusDiv.classList.add('status-fail');
     }
 }
@@ -475,7 +493,7 @@ async function refreshLogs() {
         const logsData = await response.json();
 
         logsBody.innerHTML = '';
-        if (logsData.length === 0) {
+        if (!logsData || logsData.length === 0) {
             logsBody.innerHTML = `<tr><td colspan="4" class="logs-empty">Brak zakończonych zleceń. Wyślij pierwszy submit!</td></tr>`;
             return;
         }
@@ -484,13 +502,14 @@ async function refreshLogs() {
             const statusClass = log.status === 'OK' ? 'status-ok' : 'status-fail';
             const newRow = logsBody.insertRow(-1);
             newRow.innerHTML = `
-                <td>${log.timestamp}</td>
-                <td>${log.problem} (${log.contest})</td>
-                <td class="${statusClass}">${log.status}</td>
-                <td class="response-text">${log.response}</td>
+                <td class="px-4 py-2">${log.timestamp}</td>
+                <td class="px-4 py-2">${log.problem} (${log.contest})</td>
+                <td class="px-4 py-2 ${statusClass}">${log.status}</td>
+                <td class="px-4 py-2 response-text">${log.response}</td>
             `;
         });
-    } catch {
+    } catch (e) {
+        console.error(e);
         logsBody.innerHTML = `<tr><td colspan="4" class="logs-empty status-fail">Nie udało się załadować logów z serwera.</td></tr>`;
     }
 }
