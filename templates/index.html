@@ -7,7 +7,7 @@
     <title>Rzemieślnicy Inc.</title>
     <style>
     @import url('https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Jacquard+12&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
     </style>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -34,7 +34,7 @@
             font-style: normal;
         }
         h1, h2{ 
-            font-family: "Jacquard 12", system-ui;
+            font-family: "Michroma", sans-serif;
             font-weight: 400;
             font-style: normal;
         }
@@ -69,7 +69,7 @@
 <body class="dark bg-gray-900 text-gray-200 min-h-screen">
     <div class="container mx-auto bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-700">
         <div class="header bg-gradient-to-r from-blue-900 to-violet-900 p-8 text-center border-b border-gray-700">
-            <h1 class="text-3xl md:text-4xl font-bold mb-2 text-white scale-135">Rzemieślnicy Inc.</h1>
+            <h1 class="text-3xl md:text-4xl font-bold mb-2 text-white ">Rzemieślnicy Inc.</h1>
         </div>
 
         <div class="content p-6">
@@ -84,7 +84,7 @@
 
                     <!-- Problems.json Drop Zone -->
                     <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
-                        <h2 class="text-xl font-semibold mb-4 text-violet-300">Załaduj problemy.json</h2>
+                        <h2 class=" text-xl font-semibold mb-4 text-violet-300">Załaduj problemy.json</h2>
                         <div id="problemy-drop" class="dropzone border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-violet-400 bg-gray-700/30">
                             <div class="text-4xl mb-2 text-violet-400">🎯</div>
                             <div class="font-medium text-gray-200">Problemy.json</div>
@@ -96,7 +96,7 @@
 
                     <!-- Contest Selection -->
                     <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
-                        <h2 class="text-xl font-semibold mb-4 text-violet-300">Wybór kontestu</h2>
+                        <h2 class=" text-xl font-semibold mb-4 text-violet-300">Wybór kontestu</h2>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-300 mb-1">Nazwa kontestu:</label>
                             <div id="contest-dropdown" class="relative inline-block w-full text-left">
@@ -114,7 +114,7 @@
 
                     <!-- API Token Authorization -->
                     <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
-                        <h2 class="text-xl font-semibold mb-4 text-violet-300">Autoryzacja (Token API)</h2>
+                        <h2 class=" text-xl font-semibold mb-4 text-violet-300">Autoryzacja (Token API)</h2>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-300 mb-1">Token API:</label>
                             <input type="text" id="token" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="Wklej swój token API...">
@@ -128,7 +128,7 @@
 
                 <!-- Right Column - Token Database -->
                 <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary h-fit sticky top-6">
-                    <h2 class="text-xl font-semibold mb-4 text-violet-300">Baza tokenów</h2>
+                    <h2 class=" text-xl font-semibold mb-4 text-violet-300">Baza tokenów</h2>
                     <div class="bg-gray-800 rounded-md overflow-hidden">
                         <div class="overflow-auto max-h-96">
                             <table class="w-full">
@@ -152,7 +152,7 @@
 
             <!-- Single Submit Section -->
             <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-violet-300">Pojedynczy submit</h2>
+                <h2 class=" text-xl font-semibold mb-4 text-violet-300">Pojedynczy submit</h2>
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz sposób wprowadzania zadania:</label>
@@ -215,7 +215,7 @@
 
             <!-- Multi-Submit Section -->
             <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-violet-300">Multi-Submit</h2>
+                <h2 class=" text-xl font-semibold mb-4 text-violet-300">Multi-Submit</h2>
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz sposób wprowadzania zadań:</label>
@@ -278,7 +278,7 @@
 
             <!-- Multi-Sybau Section -->
             <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-violet-300">Spam Submit</h2>
+                <h2 class=" text-xl font-semibold mb-4 text-violet-300">Spam Submit</h2>
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-1">Wybierz sposób wprowadzania zadań:</label>
@@ -332,7 +332,7 @@
             <!-- Logs -->
             <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-violet-300">Logi submitów</h2>
+                    <h2 class=" text-xl font-semibold text-violet-300">Logi submitów</h2>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <button onclick="refreshLogs()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center w-full sm:w-auto">
                             <i data-feather="refresh-cw" class="mr-2 w-4"></i> Odśwież
