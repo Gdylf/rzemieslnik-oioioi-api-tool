@@ -1,6 +1,6 @@
 #include <iostream>
 
 int main() {
-    std::cout << "SYBAU NIGGA" << std::endl;
+    std::cout << "123 Zadanie wyzerowane masz ty" << std::endl;
     return -67;
 }
