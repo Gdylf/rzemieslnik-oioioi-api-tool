@@ -153,9 +153,13 @@ async function loadProblemsData(data) {
     const listMulti = document.getElementById('multi-problems-list');
     const listSybau = document.getElementById('multi-sybau-problems-list');
 
+    // Zachowaj guzik "Zaznacz wszystkie" dla multi i sybau
+    const selectAllBtnMulti = '<div class="p-2 border-b border-gray-700"><button class="select-all-btn w-full" onclick="selectAllProblems(\'multi\'); event.stopPropagation();">Zaznacz wszystkie</button></div>';
+    const selectAllBtnSybau = '<div class="p-2 border-b border-gray-700"><button class="select-all-btn w-full" onclick="selectAllProblems(\'sybau\'); event.stopPropagation();">Zaznacz wszystkie</button></div>';
+
     listSingle.innerHTML = '';
-    listMulti.innerHTML = '';
-    listSybau.innerHTML = '';
+    listMulti.innerHTML = selectAllBtnMulti;
+    listSybau.innerHTML = selectAllBtnSybau;
 
     data.forEach(problem => {
         // SINGLE
@@ -174,7 +178,15 @@ async function loadProblemsData(data) {
             listSingle.querySelectorAll(".checkbox-item").forEach(el => el.classList.remove("selected"));
             if (inputSingle.checked) itemSingle.classList.add("selected");
             updateSingleProblemLabel();
-            document.getElementById("single-problems-dropdown").classList.remove("active");
+            document.getElementById("single-problems-list").classList.add("hidden");
+        });
+
+        // Kliknięcie w całą linię
+        itemSingle.addEventListener("click", (e) => {
+            if (e.target !== inputSingle) {
+                inputSingle.checked = true;
+                inputSingle.dispatchEvent(new Event('change'));
+            }
         });
 
         itemSingle.appendChild(inputSingle);
@@ -198,6 +210,17 @@ async function loadProblemsData(data) {
             updateMultiLabel("multi");
         });
 
+        // Kliknięcie w całą linię
+        itemMulti.addEventListener("click", (e) => {
+            // Jeśli kliknięto w input lub label, nie rób nic (domyślna akcja zadziała)
+            if (e.target === inputMulti || e.target === labelMulti) {
+                return;
+            }
+            // W przeciwnym razie toggle checkbox
+            inputMulti.checked = !inputMulti.checked;
+            inputMulti.dispatchEvent(new Event('change'));
+        });
+
         itemMulti.appendChild(inputMulti);
         itemMulti.appendChild(labelMulti);
         listMulti.appendChild(itemMulti);
@@ -217,6 +240,17 @@ async function loadProblemsData(data) {
             if (inputSybau.checked) itemSybau.classList.add("selected");
             else itemSybau.classList.remove("selected");
             updateMultiLabel("sybau");
+        });
+
+        // Kliknięcie w całą linię
+        itemSybau.addEventListener("click", (e) => {
+            // Jeśli kliknięto w input lub label, nie rób nic (domyślna akcja zadziała)
+            if (e.target === inputSybau || e.target === labelSybau) {
+                return;
+            }
+            // W przeciwnym razie toggle checkbox
+            inputSybau.checked = !inputSybau.checked;
+            inputSybau.dispatchEvent(new Event('change'));
         });
 
         itemSybau.appendChild(inputSybau);
@@ -284,8 +318,9 @@ function updateSingleProblemLabel() {
 }
 
 function updateMultiLabel(type) {
-    const list = document.getElementById(`${type}-problems-list`);
-    const label = document.getElementById(`${type}-problems-label`);
+    const prefix = type === 'multi' ? 'multi' : 'multi-sybau';
+    const list = document.getElementById(`${prefix}-problems-list`);
+    const label = document.getElementById(`${prefix}-problems-label`);
     if (!list || !label) return;
     const checkedItems = list.querySelectorAll('input[type="checkbox"]:checked');
     const count = checkedItems.length;
@@ -297,6 +332,27 @@ function updateMultiLabel(type) {
     } else {
         label.textContent = `Wybrano ${count} zadań`;
     }
+}
+
+// ================== Funkcja zaznaczania wszystkich ==================
+function selectAllProblems(type) {
+    const prefix = type === 'multi' ? 'multi' : 'multi-sybau';
+    const list = document.getElementById(`${prefix}-problems-list`);
+    if (!list) return;
+    
+    const checkboxes = list.querySelectorAll('input[type="checkbox"]');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+        const item = cb.closest('.checkbox-item');
+        if (item) {
+            if (cb.checked) item.classList.add("selected");
+            else item.classList.remove("selected");
+        }
+    });
+    
+    updateMultiLabel(type);
 }
 
 // ================== Helpers ==================
@@ -317,7 +373,8 @@ async function getCode(codeId, fileId) {
 }
 
 function getProblemsFromDropdown(type) {
-    const list = document.getElementById(`${type}-problems-list`);
+    const prefix = type === 'multi' ? 'multi' : (type === 'sybau' ? 'multi-sybau' : 'single');
+    const list = document.getElementById(`${prefix}-problems-list`);
     if (!list) return [];
     if (type === 'single') {
         const checkedRadio = list.querySelector('input[name="single_problem_radio"]:checked');
