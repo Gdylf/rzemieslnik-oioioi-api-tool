@@ -105,7 +105,7 @@ def check_token():
                 username = user_data.get('username', user_data.get('user', {}).get('username', 'zalogowany'))
                 return jsonify({'valid': True, 'username': username})
             except:
-                return jsonify({'valid': True, 'username': 'zalogowany (błąd odczytu JSON)'})
+                return jsonify({'valid': True, 'username': f'zalogowany {user_data[5:]}'})
         else:
             error_msg = f'Status: {response.status_code}'
             try:
