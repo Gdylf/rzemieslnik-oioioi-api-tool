@@ -67,7 +67,7 @@ async function loadTokens() {
 
         tbody.innerHTML = '';
         if (!rawTokens || rawTokens.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="logs-empty">Brak zapisanych tokenów.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" class="logs-empty">Brak zapisanych tokenów.</td></tr>`;
             return;
         }
 
@@ -80,6 +80,9 @@ async function loadTokens() {
             newRow.innerHTML = `
                 <td class="token-contest-name px-4 py-2">${contestName}</td>
                 <td class="token-value px-4 py-2" title="${tokenValue}">${tokenValue.substring(0, 8)}...</td>
+                <td class="token-status px-4 py-2" data-token="${tokenValue}">
+                    <span class="status-text">-</span>
+                </td>
                 <td class="token-actions px-4 py-2">
                     <button class="btn-mini btn-copy mr-2" onclick="copyToken('${tokenValue}')">Kopiuj</button>
                     <button class="btn-mini btn-use" onclick="useToken('${tokenValue}')">Użyj</button>
@@ -89,8 +92,53 @@ async function loadTokens() {
 
     } catch (error) {
         console.error("Błąd ładowania bazy tokenów:", error);
-        tbody.innerHTML = `<tr><td colspan="3" class="logs-empty status-fail">Nie udało się załadować bazy tokenów.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="logs-empty status-fail">Nie udało się załadować bazy tokenów.</td></tr>`;
     }
+}
+
+async function checkAllTokens() {
+    const tbody = document.getElementById('token-db-body');
+    const statusCells = tbody.querySelectorAll('.token-status');
+    
+    if (statusCells.length === 0) {
+        alert('Brak tokenów do sprawdzenia.');
+        return;
+    }
+
+    // Ustaw status "Sprawdzanie..." dla wszystkich
+    statusCells.forEach(cell => {
+        const statusText = cell.querySelector('.status-text');
+        statusText.textContent = '⏳';
+        statusText.className = 'status-text token-status-checking';
+    });
+
+    // Sprawdź każdy token
+    const checkPromises = Array.from(statusCells).map(async (cell) => {
+        const token = cell.dataset.token;
+        const statusText = cell.querySelector('.status-text');
+        
+        try {
+            const response = await fetch(`${API_URL}/check_token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            const data = await response.json();
+            
+            if (data.valid) {
+                statusText.textContent = '✅';
+                statusText.className = 'status-text token-status-valid';
+            } else {
+                statusText.textContent = '❌';
+                statusText.className = 'status-text token-status-invalid';
+            }
+        } catch (error) {
+            statusText.textContent = '❌';
+            statusText.className = 'status-text token-status-invalid';
+        }
+    });
+
+    await Promise.all(checkPromises);
 }
 
 // ================== Problemy ==================
@@ -526,12 +574,12 @@ async function checkToken() {
         });
         const data = await response.json();
         if (data.valid) {
-            statusDiv.textContent = `Zalogowano jako: ${data.username}`;
+            statusDiv.textContent = `✅`;
             statusDiv.classList.remove('status-fail');
             statusDiv.classList.add('status-ok');
         } else {
             
-            statusDiv.textContent = `Błąd tokena: ${data.error.match(/'detail': '([^']+)'/)?.[1] || data.error}`;
+            statusDiv.textContent = `❌`;
 
             statusDiv.classList.remove('status-ok');
             statusDiv.classList.add('status-fail');
