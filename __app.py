@@ -204,7 +204,7 @@ def sybau_submit():
     success_count = sum(results)
     return jsonify({
         'success': True,
-        'message': f'Wysłano {repeat} SYBAU submitów do {problem} w kontście {contest_id}. Sukces: {success_count}/{repeat}'
+        'message': f'Wysłano {repeat} spam submitów do {problem} w kontście {contest_id}. Sukces: {success_count}/{repeat}'
     })
 
 @app.route('/multi_sybau_submit', methods=['POST'])
@@ -245,7 +245,7 @@ def multi_sybau_submit():
     
     return jsonify({
         'success': True,
-        'message': f'🔥 Wysłano {total} SYBAU submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
+        'message': f'🔥 Wysłano {total} spam submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
     })
 
 @app.route('/get_logs', methods=['GET'])
