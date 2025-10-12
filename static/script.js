@@ -573,13 +573,13 @@ async function checkToken() {
             body: JSON.stringify({ token })
         });
         const data = await response.json();
-        if (data.valid) {
-            statusDiv.textContent = `✅`;
+          if (data.valid) {
+            statusDiv.textContent = `Zalogowano jako: ${data.username.slice(11)}`;
             statusDiv.classList.remove('status-fail');
             statusDiv.classList.add('status-ok');
         } else {
             
-            statusDiv.textContent = `❌`;
+            statusDiv.textContent = `Błąd tokena: ${data.error.match(/'detail': '([^']+)'/)?.[1] || data.error}`;
 
             statusDiv.classList.remove('status-ok');
             statusDiv.classList.add('status-fail');
