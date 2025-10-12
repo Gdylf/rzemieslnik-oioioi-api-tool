@@ -473,7 +473,9 @@ async function checkToken() {
             statusDiv.classList.remove('status-fail');
             statusDiv.classList.add('status-ok');
         } else {
-            statusDiv.textContent = `Błąd tokena: ${data.error}`;
+            
+            statusDiv.textContent = `Błąd tokena: ${data.error.match(/'detail': '([^']+)'/)?.[1] || data.error}`;
+
             statusDiv.classList.remove('status-ok');
             statusDiv.classList.add('status-fail');
         }
