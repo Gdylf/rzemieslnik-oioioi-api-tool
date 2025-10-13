@@ -53,8 +53,126 @@
         .checkbox-item.selected {
             background-color: rgba(139, 92, 246, 0.12);
         }
-        .checkbox-item input {
-            accent-color: #8b5cf6;
+        .checkbox-item input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            border: 2px solid #6b7280;
+            appearance: none;
+            -webkit-appearance: none;
+            border-radius: 4px;
+            background-color: #374151;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .checkbox-item input[type="checkbox"]:hover {
+            border-color: #8b5cf6;
+        }
+        .checkbox-item input[type="checkbox"]:checked {
+            border-color: #8b5cf6;
+            background-color: #8b5cf6;
+        }
+        .checkbox-item input[type="checkbox"]:checked::before {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .checkbox-item input[type="radio"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            border: 2px solid #6b7280;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            border-radius: 50%;
+            background-color: #374151;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .checkbox-item input[type="radio"]:hover {
+            border-color: #8b5cf6;
+        }
+        .checkbox-item input[type="radio"]:checked {
+            border-color: #8b5cf6;
+            background-color: #8b5cf6;
+        }
+        .checkbox-item input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: white;
+        }
+        .checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+        .select-all-btn {
+            margin-top: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .select-all-btn:hover {
+            background: #8b5cf6;
+        }
+        /* Radio buttons w trybach wyboru */
+        input[type="radio"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            border: 2px solid #6b7280;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            border-radius: 50%;
+            background-color: #374151;
+            position: relative;
+            transition: all 0.2s;
+            vertical-align: middle;
+        }
+        input[type="radio"]:hover {
+            border-color: #8b5cf6;
+        }
+        input[type="radio"]:checked {
+            border-color: #8b5cf6;
+            background-color: #8b5cf6;
+        }
+        input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: white;
+        }
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
         }
         .status-ok { color: #34d399; font-weight: 600; }
         .status-fail { color: #fb7185; font-weight: 600; }
@@ -130,23 +248,39 @@
                 <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary h-fit sticky top-6">
                     <h2 class=" text-xl font-semibold mb-4 text-violet-300">Baza tokenów</h2>
                     <div class="bg-gray-800 rounded-md overflow-hidden">
-                        <div class="overflow-auto max-h-96">
+                        <div class="overflow-auto max-h-100">
                             <table class="w-full">
                                 <thead class="bg-gray-900">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Nazwa kontestu</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Użytkownik</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Token</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Akcje</th>
+                                        <button class="btn-mini btn-use" onclick="checkAllTokens()", style="padding:5px ;">Sprawdź wszystkie tokeny</button>
+                                        
+                                        
+                                        
                                     </tr>
+                                    
                                 </thead>
                                 <tbody id="token-db-body" class="divide-y divide-gray-700">
                                     <tr>
                                         <td colspan="3" class="px-4 py-4 text-center text-gray-400">Ładowanie tokenów...</td>
                                     </tr>
+                                    
                                 </tbody>
+                                
                             </table>
+                            <!-- gdzieś przy tabeli tokenów -->
+
+
+
+                            
                         </div>
+                        
                     </div>
+                    <!-- tu można dodac funkcje updateowania bazy danych(tylko jeśli token działa i nie ma go w bazie)
+                     oraz można tu dodać funkcje do usuwania wszystkich niedizałających tokenów-->
                 </div>
             </div>
 
@@ -245,7 +379,9 @@
                         </div>
 
                         <div id="multi-problems-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden">
-                            <div class="p-2 text-gray-400">Ładowanie...</div>
+                            <div class="p-2 border-b border-gray-700">
+                                <button class="select-all-btn w-full" onclick="selectAllProblems('multi'); event.stopPropagation();">Zaznacz wszystkie</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -308,7 +444,9 @@
                         </div>
 
                         <div id="multi-sybau-problems-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden">
-                            <div class="p-2 text-gray-400">Ładowanie...</div>
+                            <div class="p-2 border-b border-gray-700">
+                                <button class="select-all-btn w-full" onclick="selectAllProblems('sybau'); event.stopPropagation();">Zaznacz wszystkie</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -353,7 +491,7 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Odpowiedź serwera</th>
                                 </tr>
-                            </thead>
+                            </thead>    
                             <tbody id="logs-body" class="divide-y divide-gray-700">
                                 <tr>
                                     <td colspan="4" class="px-4 py-4 text-center text-gray-400">Brak logów. Wyślij pierwszy submit!</td>
