@@ -99,24 +99,28 @@ async function loadTokens() {
 async function checkAllTokens() {
     const tbody = document.getElementById('token-db-body');
     const statusCells = tbody.querySelectorAll('.token-status');
-    
+
     if (statusCells.length === 0) {
         alert('Brak tokenów do sprawdzenia.');
         return;
     }
 
-    // Ustaw status "Sprawdzanie..." dla wszystkich
+    // Ustaw "Sprawdzanie..." dla wszystkich
     statusCells.forEach(cell => {
         const statusText = cell.querySelector('.status-text');
-        statusText.textContent = '⏳';
+        statusText.innerHTML = '<i data-feather="loader" class="animate-spin"></i>';
         statusText.className = 'status-text token-status-checking';
+        cell.title = 'Sprawdzanie...';
     });
+
+    // Odśwież ikony Feather po zmianie HTML
+    feather.replace();
 
     // Sprawdź każdy token
     const checkPromises = Array.from(statusCells).map(async (cell) => {
         const token = cell.dataset.token;
         const statusText = cell.querySelector('.status-text');
-        
+
         try {
             const response = await fetch(`${API_URL}/check_token`, {
                 method: 'POST',
@@ -124,22 +128,29 @@ async function checkAllTokens() {
                 body: JSON.stringify({ token })
             });
             const data = await response.json();
-            
+
             if (data.valid) {
-                statusText.textContent = '✅';
+                statusText.innerHTML = '<i data-feather="check-circle" class="text-green-500"></i>';
                 statusText.className = 'status-text token-status-valid';
+                cell.title = data.username || 'Token poprawny';
             } else {
-                statusText.textContent = '❌';
+                statusText.innerHTML = '<i data-feather="x-circle" class="text-red-500"></i>';
                 statusText.className = 'status-text token-status-invalid';
+                cell.title = data.error || 'Token niepoprawny';
             }
         } catch (error) {
-            statusText.textContent = '❌';
+            statusText.innerHTML = '<i data-feather="alert-circle" class="text-red-500"></i>';
             statusText.className = 'status-text token-status-invalid';
+            cell.title = `Błąd: ${error.message}`;
         }
+
+        // Zastąp ikony Feather w tym cyklu
+        feather.replace();
     });
 
     await Promise.all(checkPromises);
 }
+
 
 // ================== Problemy ==================
 function setupDropZone() {

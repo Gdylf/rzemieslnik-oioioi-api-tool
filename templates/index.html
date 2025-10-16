@@ -202,15 +202,24 @@
 
                     <!-- Problems.json Drop Zone -->
                     <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
-                        <h2 class=" text-xl font-semibold mb-4 text-violet-300">Załaduj problemy.json</h2>
-                        <div id="problemy-drop" class="dropzone border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-violet-400 bg-gray-700/30">
-                            <div class="text-4xl mb-2 text-violet-400">🎯</div>
-                            <div class="font-medium text-gray-200">Problemy.json</div>
-                            <div class="text-sm text-gray-400">Kliknij lub przeciągnij plik tutaj</div>
-                            <input type="file" class="hidden" id="problemy-file" accept=".json">
+                      <h2 class="text-xl font-semibold mb-4 text-violet-300">Załaduj problemy.json</h2>
+                                        
+                      <div id="problemy-drop"
+                           class="dropzone border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-violet-400 bg-gray-700/30 flex flex-col items-center justify-center">
+                                        
+                        <div class="mb-2 text-violet-400 flex items-center justify-center">
+                          <i data-feather="upload" class="w-12 h-12"></i>
                         </div>
-                        <div id="problemy-status" class="text-sm mt-2 text-blue-300"></div>
+                        
+                        <div class="font-medium text-gray-200">Problemy.json</div>
+                        <div class="text-sm text-gray-400">Kliknij lub przeciągnij plik tutaj</div>
+                        
+                        <input type="file" class="hidden" id="problemy-file" accept=".json">
+                      </div>
+                  
+                      <div id="problemy-status" class="text-sm mt-2 text-blue-300"></div>
                     </div>
+
 
                     <!-- Contest Selection -->
                     <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
