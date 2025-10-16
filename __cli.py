@@ -9,23 +9,40 @@ BASE_URL = "https://wyzwania.programuj.edu.pl"
 SPAM_CODE_PATH = os.path.join(os.path.dirname(__file__), "spam.cpp")
 
 
+
 def check_token(token):
     """Check if a token is valid."""
     url = f"{BASE_URL}/api/auth_ping"
     headers = {"Authorization": f"Token {token}"}
+
     try:
         r = requests.get(url, headers=headers, timeout=10)
         if r.status_code == 200:
             try:
                 data = r.json()
-                user = data.get("username") or data.get("user", {}).get("username", "unknown")
-            except:
-                user = "unknown"
-            print(f"[OK] Token valid for user: {user}")
+                if isinstance(data, dict):
+                    # Handle both direct username and nested user object
+                    username = data.get("username") or data.get("user", {}).get("username", "unknown")
+                    print(f"[OK] Token valid for user: {username}")
+                else:
+                    # JSON parsed successfully but not a dict (e.g. string "pong")
+                    text = str(data).replace("pong", "").strip()
+                    print(f"[OK] Token valid{f': {text}' if text else ''}")
+            except ValueError:
+                # Not JSON, raw text
+                text = r.text.replace("pong", "").strip()
+                print(f"[OK] Token valid{f': {text}' if text else ''}")
         else:
-            print(f"[FAIL] Invalid token ({r.status_code}) -> {r.text[:100]}")
+            try:
+                err_data = r.json()
+                msg = err_data if isinstance(err_data, str) else str(err_data)
+            except ValueError:
+                msg = r.text[:100]
+            print(f"[FAIL] Invalid token ({r.status_code}) -> {msg}")
     except Exception as e:
         print(f"[ERROR] {e}")
+
+        
 
 
 def submit_solution(token, contest, problem, code):
