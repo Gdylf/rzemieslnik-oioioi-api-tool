@@ -22,14 +22,17 @@ from datetime import datetime
 import threading
 import json
 import os
-app = Flask(__name__)
+import argparse
+app = Flask(__name__, static_folder='static')
 CORS(app)
 
 # Lock dla bezpiecznego dodawania logów
 logs_lock = threading.Lock()
 logs = [] 
 
-BASE_URL = "https://wyzwania.programuj.edu.pl"
+# Domyślny adres serwera OIOIOI (można nadpisać przez --domain)
+DEFAULT_BASE_URL = "https://wyzwania.programuj.edu.pl"
+app.config['BASE_URL'] = DEFAULT_BASE_URL
 # Ścieżka do pliku z kodem Spam (w tym samym katalogu co app.py)
 Spam_CODE_PATH = os.path.join(os.path.dirname(__file__), 'Spam.cpp') 
 
@@ -46,38 +49,34 @@ def add_log(contest, problem, status, response_text):
         })
 
 def submit_solution(token, contest_id, problem, code):
-    """Wysyła pojedynczy submit do API, używając dynamicznego contest_id."""
-    url = f"{BASE_URL}/api/c/{contest_id}/submit/{problem}" 
-    
+    """Send a single submission to OIOIOI API."""
+    url = f"{app.config['BASE_URL']}/api/c/{contest_id}/submit/{problem}"
+
     headers = {
         'Authorization': f'Token {token}'
     }
-    
+
     files = {'file': ('solution.cpp', code, 'text/x-c++src')}
-    
+
     try:
         response = requests.post(url, files=files, headers=headers, timeout=30)
-        
         content_type = response.headers.get('Content-Type', '')
-        
+
         if 'application/json' in content_type:
-            try:
-                json_response = response.json()
-                status = 'OK' if response.status_code == 200 else 'FAIL'
-                response_text = json.dumps(json_response, ensure_ascii=False) 
-            except json.JSONDecodeError:
-                status = 'FAIL'
-                response_text = f"Błąd JSON: {response.text[:100]}"
+            json_response = response.json()
+            status = 'OK' if response.status_code == 200 else 'FAIL'
+            response_text = json.dumps(json_response, ensure_ascii=False)
         else:
             status = 'FAIL' if response.status_code >= 400 else 'OK'
-            response_text = f"HTML Response [{response.status_code}]: {response.text[:100]}"
-        
+            response_text = f"HTML [{response.status_code}]: {response.text[:100]}"
+
         add_log(contest_id, problem, status, response_text)
-        return True
-        
+        return response.status_code == 200
+
     except requests.exceptions.RequestException as e:
         add_log(contest_id, problem, 'FAIL', f"Exception: {str(e)}")
         return False
+
 
 # --- Routing ---
 
@@ -175,13 +174,13 @@ def multi_submit():
         'message': f'Wysłano {total} submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
     })
 
-@app.route('/Spam_submit', methods=['POST'])
+@app.route('/spam_submit', methods=['POST'])
 def Spam_submit():
     """Wysyła Spam submit, kod ładowany z pliku Spam.cpp"""
-    data = request.json
+    data = request.get_json(force=True)
     token = data.get('token')
     contest_id = data.get('contest')
-    problem = data.get('problem')
+    problem = data.get('problem') or data.get('problems')
     repeat = int(data.get('repeat', 1))
     concurrency = int(data.get('concurrency', 5))
     
@@ -262,7 +261,28 @@ def clear_logs():
     return jsonify({'success': True})
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Rzemieślnik OIOIOI API Server")
+    parser.add_argument(
+        '--target',
+        type=str,
+        default="https://wyzwania.programuj.edu.pl",
+        help='Target domain base URL (default: https://wyzwania.programuj.edu.pl)'
+    )
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=4000,
+        help='Host port for the Flask app (default: 4000)'
+    )
+
+    args = parser.parse_args()
+
+    BASE_URL = args.target
+    app.config['BASE_URL'] = BASE_URL
+
+
     print("🛠️ Uruchamianie Rzemieślnik OIOIOI API Server (Flask)...")
-    print("🌐 Otwórz: http://127.0.0.1:4000")
-    app.run(debug=True, host='0.0.0.0', port=4000)
+    print(f"🌐 Cel: {BASE_URL}")
+    app.run(debug=True, host='0.0.0.0', port=args.port)
+
     

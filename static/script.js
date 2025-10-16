@@ -1,59 +1,70 @@
 // script.js
 // Relative API base -> empty string so endpoints become e.g. /check_token
-const API_URL = "" ;
+const API_URL = window.location.origin;
 let problemsData = [];
 let tokensData = {};
 
 // ================== Wybór kontestu (custom dropdown) ==================
-async function loadContests() {
-    const list = document.getElementById("contest-list");
-    const label = document.getElementById("contest-label");
-
-    try {
-        const response = await fetch("static/contesty.json");
-        if (!response.ok) {
-            throw new Error(`Błąd ładowania: ${response.status}`);
-        }
-        const contests = await response.json();
-
-        const parsed = contests.map(c =>
-            typeof c === "string" ? { id: c, name: c } : c
-        );
-
-        list.innerHTML = "";
-        parsed.forEach(c => {
-            const div = document.createElement("div");
-            div.classList.add("checkbox-item");
-            div.textContent = c.name;
-            div.dataset.value = c.id;
-            div.onclick = () => {
-                label.textContent = c.name;
-                label.dataset.value = c.id;
-                // hide list
-                document.getElementById("contest-list").classList.add("hidden");
-            };
-            list.appendChild(div);
-        });
-
-        if (parsed.length > 0) {
-            label.textContent = parsed[0].name;
-            label.dataset.value = parsed[0].id;
-        } else {
-            label.textContent = "Brak kontestów";
-            label.dataset.value = "";
-        }
-    } catch (error) {
-        console.error("Nie udało się załadować listy kontestów:", error);
-        list.innerHTML = `<div class="checkbox-item status-fail">Błąd ładowania kontestów</div>`;
-        label.textContent = "Błąd ładowania";
-        label.dataset.value = "";
-    }
-}
+let contestsCache = [];
 
 function getSelectedContestId() {
-    const label = document.getElementById("contest-label");
-    return label && label.dataset.value ? label.dataset.value : "";
+    const input = document.getElementById("contest-input");
+    return input?.value?.trim() || "";
 }
+
+
+async function loadContests() {
+  const list = document.getElementById("contest-list");
+  const input = document.getElementById("contest-input");
+  try {
+    const response = await fetch("static/contesty.json");
+    const contests = await response.json();
+    contestsCache = contests.map(c => typeof c === "string" ? { id: c, name: c } : c);
+    renderContestList(contestsCache);
+  } catch (e) {
+    list.innerHTML = `<div class="p-2 text-red-400">Błąd ładowania kontestów</div>`;
+  }
+}
+
+function renderContestList(items) {
+  const list = document.getElementById("contest-list");
+  list.innerHTML = "";
+  items.forEach(c => {
+    const div = document.createElement("div");
+    div.className =
+      "px-4 py-2 text-gray-200 hover:bg-violet-600 hover:text-white cursor-pointer";
+    div.textContent = c.name;
+    div.onclick = () => {
+      document.getElementById("contest-input").value = c.id;
+      toggleContestList(false);
+    };
+    list.appendChild(div);
+  });
+}
+
+function toggleContestList(show) {
+  const list = document.getElementById("contest-list");
+  list.classList.toggle("hidden", !show);
+}
+
+function filterContests() {
+  const query = document.getElementById("contest-input").value.toLowerCase();
+  const filtered = contestsCache.filter(c =>
+    c.name.toLowerCase().includes(query) || c.id.toLowerCase().includes(query)
+  );
+  renderContestList(filtered);
+  toggleContestList(true);
+}
+
+document.addEventListener("click", e => {
+  if (!e.target.closest("#contest-list") && !e.target.closest("#contest-input")) {
+    toggleContestList(false);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", loadContests);
+
+
 
 // ================== Tokeny ==================
 async function loadTokens() {
@@ -446,7 +457,7 @@ function getProblemsFromDropdown(type) {
 // ================== Submisje ==================
 async function performSubmit(endpoint, payload) {
     try {
-        const response = await fetch(`${API_URL}/${endpoint}`.replace('//', '/'), {
+        const response = await fetch(`${API_URL}/${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -548,7 +559,7 @@ async function multiSybauSubmit() {
         token, contest, problems: problemsStr,
         repeat: parseInt(repeat), concurrency: parseInt(concurrency)
     };
-    performSubmit('multi_sybau_submit', payload);
+    performSubmit('spam_submit', payload);
 }
 
 // ================== Tokeny i logi ==================

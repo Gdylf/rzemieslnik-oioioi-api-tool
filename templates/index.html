@@ -221,23 +221,26 @@
                     </div>
 
 
-                    <!-- Contest Selection -->
-                    <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
-                        <h2 class=" text-xl font-semibold mb-4 text-violet-300">Wybór kontestu</h2>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-300 mb-1">Nazwa kontestu:</label>
-                            <div id="contest-dropdown" class="relative inline-block w-full text-left">
-                                <div id="contest-dropdown-button" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors" onclick="toggleDropdown('contest-dropdown')">
-                                    <span id="contest-label" data-value="">Ładowanie kontestów...</span>
-                                    <i data-feather="chevron-down" class="text-gray-400"></i>
-                                </div>
-
-                                <div id="contest-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden">
-                                    <div class="p-2 text-gray-400">Ładowanie...</div>
-                                </div>
-                            </div>
-                        </div>
+                   <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
+                        <h2 class="text-xl font-semibold mb-4 text-violet-300">Wybór kontestu</h2>
+                    <div class="relative">
+                      <input
+                        id="contest-input"
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md text-gray-100 
+                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 
+                               focus:border-violet-500 transition-colors"
+                        placeholder="Wybierz lub wpisz nazwę kontestu..."
+                        oninput="filterContests()"
+                        onclick="toggleContestList(true)"
+                      />
+                      <div id="contest-list" 
+                           class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md 
+                                  shadow-lg max-h-60 overflow-auto hidden">
+                      </div>
                     </div>
+                    </div>
+
+
 
                     <!-- API Token Authorization -->
                     <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
