@@ -2,5 +2,5 @@
 
 int main() {
     std::cout << "123 Zadanie wyzerowane masz ty" << std::endl;
-    return -67;
+    return 1;
 }

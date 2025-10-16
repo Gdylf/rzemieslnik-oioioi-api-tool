@@ -30,8 +30,8 @@ logs_lock = threading.Lock()
 logs = [] 
 
 BASE_URL = "https://wyzwania.programuj.edu.pl"
-# Ścieżka do pliku z kodem SYBAU (w tym samym katalogu co app.py)
-SYBAU_CODE_PATH = os.path.join(os.path.dirname(__file__), 'sybau.cpp') 
+# Ścieżka do pliku z kodem Spam (w tym samym katalogu co app.py)
+Spam_CODE_PATH = os.path.join(os.path.dirname(__file__), 'Spam.cpp') 
 
 
 def add_log(contest, problem, status, response_text):
@@ -175,9 +175,9 @@ def multi_submit():
         'message': f'Wysłano {total} submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
     })
 
-@app.route('/sybau_submit', methods=['POST'])
-def sybau_submit():
-    """Wysyła SYBAU submit, kod ładowany z pliku sybau.cpp"""
+@app.route('/Spam_submit', methods=['POST'])
+def Spam_submit():
+    """Wysyła Spam submit, kod ładowany z pliku Spam.cpp"""
     data = request.json
     token = data.get('token')
     contest_id = data.get('contest')
@@ -188,17 +188,17 @@ def sybau_submit():
     if not all([token, contest_id, problem]):
         return jsonify({'success': False, 'error': 'Brak wymaganych danych: token, contest lub problem'}), 400
     
-    # Wczytanie kodu z pliku sybau.cpp
+    # Wczytanie kodu z pliku Spam.cpp
     try:
-        with open(SYBAU_CODE_PATH, 'r') as f:
-            sybau_code = f.read()
+        with open(Spam_CODE_PATH, 'r') as f:
+            Spam_code = f.read()
     except FileNotFoundError:
-        return jsonify({'success': False, 'error': f'Błąd: Nie znaleziono pliku {os.path.basename(SYBAU_CODE_PATH)} w katalogu aplikacji.'}), 500
+        return jsonify({'success': False, 'error': f'Błąd: Nie znaleziono pliku {os.path.basename(Spam_CODE_PATH)} w katalogu aplikacji.'}), 500
     except Exception as e:
-        return jsonify({'success': False, 'error': f'Błąd odczytu pliku {os.path.basename(SYBAU_CODE_PATH)}: {str(e)}'}), 500
+        return jsonify({'success': False, 'error': f'Błąd odczytu pliku {os.path.basename(Spam_CODE_PATH)}: {str(e)}'}), 500
     
     with ThreadPoolExecutor(max_workers=concurrency) as executor:
-        futures = [executor.submit(submit_solution, token, contest_id, problem, sybau_code) for _ in range(repeat)]
+        futures = [executor.submit(submit_solution, token, contest_id, problem, Spam_code) for _ in range(repeat)]
         results = [f.result() for f in as_completed(futures)]
     
     success_count = sum(results)
@@ -207,9 +207,9 @@ def sybau_submit():
         'message': f'Wysłano {repeat} spam submitów do {problem} w kontście {contest_id}. Sukces: {success_count}/{repeat}'
     })
 
-@app.route('/multi_sybau_submit', methods=['POST'])
-def multi_sybau_submit():
-    """Wysyła SYBAU submity do wielu zadań równocześnie"""
+@app.route('/multi_Spam_submit', methods=['POST'])
+def multi_Spam_submit():
+    """Wysyła Spam submity do wielu zadań równocześnie"""
     data = request.json
     token = data.get('token')
     contest_id = data.get('contest')
@@ -225,16 +225,16 @@ def multi_sybau_submit():
     if not problems:
         return jsonify({'success': False, 'error': 'Nie podano zadań'}), 400
     
-    # Wczytanie kodu SYBAU z pliku
+    # Wczytanie kodu Spam z pliku
     try:
-        with open(SYBAU_CODE_PATH, 'r') as f:
-            sybau_code = f.read()
+        with open(Spam_CODE_PATH, 'r') as f:
+            Spam_code = f.read()
     except FileNotFoundError:
-        return jsonify({'success': False, 'error': f'Błąd: Nie znaleziono pliku {os.path.basename(SYBAU_CODE_PATH)} w katalogu aplikacji.'}), 500
+        return jsonify({'success': False, 'error': f'Błąd: Nie znaleziono pliku {os.path.basename(Spam_CODE_PATH)} w katalogu aplikacji.'}), 500
     except Exception as e:
-        return jsonify({'success': False, 'error': f'Błąd odczytu pliku {os.path.basename(SYBAU_CODE_PATH)}: {str(e)}'}), 500
+        return jsonify({'success': False, 'error': f'Błąd odczytu pliku {os.path.basename(Spam_CODE_PATH)}: {str(e)}'}), 500
     
-    tasks = [(token, contest_id, problem, sybau_code) for problem in problems for _ in range(repeat)]
+    tasks = [(token, contest_id, problem, Spam_code) for problem in problems for _ in range(repeat)]
     
     with ThreadPoolExecutor(max_workers=concurrency) as executor:
         futures = [executor.submit(submit_solution, *task) for task in tasks]

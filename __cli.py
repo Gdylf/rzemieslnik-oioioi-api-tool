@@ -6,7 +6,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 BASE_URL = "https://wyzwania.programuj.edu.pl"
-SYBAU_CODE_PATH = os.path.join(os.path.dirname(__file__), "sybau.cpp")
+SPAM_CODE_PATH = os.path.join(os.path.dirname(__file__), "spam.cpp")
 
 
 def check_token(token):
@@ -87,8 +87,8 @@ def main():
     p.add_argument("--repeat", type=int, default=1)
     p.add_argument("--concurrency", type=int, default=10)
 
-    # --- multi_sybau_submit ---
-    p = sub.add_parser("Spam", help="Submit sybau.cpp to multiple problems")
+    # --- spam_submit ---
+    p = sub.add_parser("spam", help="Submit spam.cpp to multiple problems")
     p.add_argument("--token", required=True)
     p.add_argument("--contest", required=True)
     p.add_argument("--problems", required=True)
@@ -103,11 +103,11 @@ def main():
         return
 
     # Read code
-    if "sybau" in args.cmd:
-        if not os.path.exists(SYBAU_CODE_PATH):
-            print(f"[ERROR] Missing file: {SYBAU_CODE_PATH}")
+    if "spam" in args.cmd:
+        if not os.path.exists(SPAM_CODE_PATH):
+            print(f"[ERROR] Missing file: {SPAM_CODE_PATH}")
             return
-        with open(SYBAU_CODE_PATH, "r") as f:
+        with open(SPAM_CODE_PATH, "r") as f:
             code = f.read()
     else:
         if not os.path.exists(args.code):
