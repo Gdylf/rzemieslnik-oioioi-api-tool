@@ -78,41 +78,52 @@ def run_submissions(token, contest, problems, code, repeat, concurrency):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Rzemieślnik OIOIOI CLI (minimal, requests-only)"
+        description="Rzemieślnik Inc. CLI"
     )
+    
+    # ✅ Define --target ONCE here
+    parser.add_argument(
+        '--target',
+        type=str,
+        default="https://wyzwania.programuj.edu.pl",
+        help='Target domain base URL (default: https://wyzwania.programuj.edu.pl)'
+    )
+    parser.add_argument("--token", required=True)
+
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     # --- check_token ---
     p = sub.add_parser("check_token", help="Check if token is valid")
-    p.add_argument("--token", required=True)
 
     # --- single_submit ---
     p = sub.add_parser("single_submit", help="Submit code to one problem")
-    p.add_argument("--token", required=True)
     p.add_argument("--contest", required=True)
     p.add_argument("--problem", required=True)
     p.add_argument("--code", required=True)
     p.add_argument("--repeat", type=int, default=1)
     p.add_argument("--concurrency", type=int, default=5)
-
+    
     # --- multi_submit ---
     p = sub.add_parser("multi_submit", help="Submit code to multiple problems")
-    p.add_argument("--token", required=True)
     p.add_argument("--contest", required=True)
     p.add_argument("--problems", required=True, help="Comma-separated problems (e.g. A,B,C)")
     p.add_argument("--code", required=True)
     p.add_argument("--repeat", type=int, default=1)
     p.add_argument("--concurrency", type=int, default=10)
-
+    
     # --- spam_submit ---
     p = sub.add_parser("spam", help="Submit spam.cpp to multiple problems")
-    p.add_argument("--token", required=True)
     p.add_argument("--contest", required=True)
     p.add_argument("--problems", required=True)
     p.add_argument("--repeat", type=int, default=1)
     p.add_argument("--concurrency", type=int, default=10)
-
+    
+    # ✅ Parse args once
     args = parser.parse_args()
+
+    # ✅ Assign BASE_URL globally
+    global BASE_URL
+    BASE_URL = args.target
 
     # --- Command Dispatcher ---
     if args.cmd == "check_token":
@@ -137,7 +148,6 @@ def main():
         p.strip() for p in args.problems.split(",") if p.strip()
     ]
     run_submissions(args.token, args.contest, problems, code, args.repeat, args.concurrency)
-
-
+    
 if __name__ == "__main__":
     main()
