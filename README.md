@@ -83,36 +83,43 @@ CLI (WIP)
  Wersja CLI Rzemieślik inc. która wymaga tylko pobranego pythona (brak wymagań paczek)
 
 ### 1.Lista komend
+ 1. `check_token`
 
-### 2.Globalne Flagi (Przed Subkomendą)
- 1. `--target`
+ 2. `single_submit`
+ 
+ 3. `multi_submit`
+ 
+ 4. `spam`
+
+## 2.Globalne Flagi (Przed Subkomendą)
+1. `--target`
 
     zmiana celu dla api np.`--target https://szkopul.edu.pl` zmienia cel dla api na szkopuł
- 2. `--token`
+2. `--token`
 
     token użyty do wysyłania zadania/ sprawdziania nazwy użytkownika
 ### 3.Flagi subkomend wysyłania kodu (Po subkomendzie)
-1.`--contest`
+1. `--contest`
 
- Na który kontest wysłać submity
+   Na który kontest wysłać submity
 
-2.`--problem`(single_submit)
+2. `--problem`(single_submit)
 
- Na które zadania wysłać submita
+   Na które zadania wysłać submita
 
-3.`--problems` (multi_submit & spam)
+3. `--problems` (multi_submit & spam)
 
- Na które zadania wysłać submity (zadania po przecinku i bez spacji)
+   Na które zadania wysłać submity (zadania po przecinku i bez spacji)
 
-4.`--repeat`
+4. `--repeat`
 
- Powtórzenia wysyłania kodu
+   Powtórzenia wysyłania kodu
 
-5.`--concurency`
+5. `--concurency`
 
- Ile wątków do użycia przy wysyłaniu kodu
+   Ile wątków do użycia przy wysyłaniu kodu
 
-6.`--code` (single_submit & multi_submit)
+6. `--code` (single_submit & multi_submit)
 
-  Śczieżka do kodu do wysłania
+   Śczieżka do kodu do wysłania
 
