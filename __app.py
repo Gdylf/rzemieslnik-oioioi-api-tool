@@ -1,4 +1,3 @@
-# app.py
 '''———————————No commits?———————————
 ⠀⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝
 ⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇
@@ -23,6 +22,7 @@ import threading
 import json
 import os
 import argparse
+
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
@@ -33,8 +33,9 @@ logs = []
 # Domyślny adres serwera OIOIOI (można nadpisać przez --domain)
 DEFAULT_BASE_URL = "https://wyzwania.programuj.edu.pl"
 app.config['BASE_URL'] = DEFAULT_BASE_URL
+
 # Ścieżka do pliku z kodem Spam (w tym samym katalogu co app.py)
-Spam_CODE_PATH = os.path.join(os.path.dirname(__file__), 'Spam.cpp') 
+Spam_CODE_PATH = os.path.join(os.path.dirname(__file__), 'spam.cpp') 
 
 
 def add_log(contest, problem, status, response_text):
@@ -47,6 +48,7 @@ def add_log(contest, problem, status, response_text):
             'status': status,
             'response': response_text[:200]
         })
+
 
 def submit_solution(token, contest_id, problem, code):
     """Send a single submission to OIOIOI API."""
@@ -84,6 +86,7 @@ def submit_solution(token, contest_id, problem, code):
 def index():
     return render_template('index.html')
 
+
 @app.route('/check_token', methods=['POST'])
 def check_token():
     """Sprawdza poprawność tokena przez endpoint /api/auth_ping"""
@@ -117,6 +120,7 @@ def check_token():
     except Exception as e:
         return jsonify({'valid': False, 'error': str(e)})
 
+
 @app.route('/single_submit', methods=['POST'])
 def single_submit():
     """Wysyła pojedynczy submit X razy"""
@@ -140,6 +144,7 @@ def single_submit():
         'success': True,
         'message': f'Wysłano {repeat} submitów do {problem} w kontście {contest_id}. Sukces: {success_count}/{repeat}'
     })
+
 
 @app.route('/multi_submit', methods=['POST'])
 def multi_submit():
@@ -174,6 +179,7 @@ def multi_submit():
         'message': f'Wysłano {total} submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
     })
 
+
 @app.route('/spam_submit', methods=['POST'])
 def Spam_submit():
     """Wysyła Spam submit, kod ładowany z pliku Spam.cpp"""
@@ -205,6 +211,7 @@ def Spam_submit():
         'success': True,
         'message': f'Wysłano {repeat} spam submitów do {problem} w kontście {contest_id}. Sukces: {success_count}/{repeat}'
     })
+
 
 @app.route('/multi_Spam_submit', methods=['POST'])
 def multi_Spam_submit():
@@ -247,11 +254,13 @@ def multi_Spam_submit():
         'message': f'🔥 Wysłano {total} spam submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
     })
 
+
 @app.route('/get_logs', methods=['GET'])
 def get_logs():
     """Zwraca logi w formacie JSON"""
     with logs_lock:
         return jsonify(logs[-100:][::-1]) 
+
 
 @app.route('/clear_logs', methods=['POST'])
 def clear_logs():
@@ -260,29 +269,33 @@ def clear_logs():
         logs.clear()
     return jsonify({'success': True})
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Rzemieślnik OIOIOI API Server")
-    parser.add_argument(
-        '--target',
-        type=str,
-        default="https://wyzwania.programuj.edu.pl",
-        help='Target domain base URL (default: https://wyzwania.programuj.edu.pl)'
-    )
-    parser.add_argument(
-        '--port',
-        type=int,
-        default=4000,
-        help='Host port for the Flask app (default: 4000)'
-    )
 
+# --- New entry point ---
+def main():
+    """Entry point for running the Rzemieślnik OIOIOI API Server."""
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="Rzemieślnik OIOIOI API Server")
+    parser.add_argument('--target', type=str, default="https://wyzwania.programuj.edu.pl")
+    parser.add_argument('--port', type=int, default=4000)
     args = parser.parse_args()
 
+    global BASE_URL
     BASE_URL = args.target
     app.config['BASE_URL'] = BASE_URL
 
-
     print("🛠️ Uruchamianie Rzemieślnik OIOIOI API Server (Flask)...")
     print(f"🌐 Cel: {BASE_URL}")
-    app.run(debug=True, host='0.0.0.0', port=args.port)
+    print(f"🚪 Port: {args.port}")
+    print("——————————————————————————————————————————————")
 
-    
+    try:
+        app.run(debug=True, host='0.0.0.0', port=args.port)
+    except KeyboardInterrupt:
+        print("\n🛑 Zatrzymano serwer ręcznie (Ctrl+C).")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
