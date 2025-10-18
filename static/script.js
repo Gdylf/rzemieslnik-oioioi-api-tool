@@ -699,42 +699,126 @@ function copyToken(token) {
   );
 }
 
+// GLOBAL to prevent overlapping checks
+let _currentTokenCheck = {
+  controller: null,
+  inProgress: false
+};
+
 async function checkToken() {
   const token = document.getElementById("token").value.trim();
   const statusDiv = document.getElementById("token-status");
+  const usernameDiv = document.getElementById("token-username");
+
+  // Ensure UI elements exist
+  if (!statusDiv) {
+    console.error("Missing #token-status element");
+    return;
+  }
+  if (!usernameDiv) {
+    console.warn("Missing #token-username element (will create one)");
+    // create a fallback element so UI still updates
+    const el = document.createElement("div");
+    el.id = "token-username";
+    statusDiv.insertAdjacentElement("afterend", el);
+  }
+
+  // Prevent overlapping checks: abort previous if still running
+  if (_currentTokenCheck.inProgress && _currentTokenCheck.controller) {
+    try { _currentTokenCheck.controller.abort(); } catch (e) {}
+    _currentTokenCheck.inProgress = false;
+    _currentTokenCheck.controller = null;
+  }
+
+  // Basic UI
   statusDiv.textContent = "Sprawdzanie...";
   statusDiv.className = "status-message";
+  document.getElementById("token-username").textContent = "";
 
   if (!token) {
     statusDiv.textContent = "Wklej token API.";
-    statusDiv.classList.add("status-fail");
+    statusDiv.className = "status-fail";
     return;
   }
 
+  // Setup abort controller and client timeout
+  const controller = new AbortController();
+  _currentTokenCheck.controller = controller;
+  _currentTokenCheck.inProgress = true;
+  const timeoutMs = 7000; // 7s frontend timeout
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
   try {
-    const response = await fetch(`${API_URL}/check_token`, {
+    const resp = await fetch(`${API_URL}/check_token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
+      signal: controller.signal
     });
-    const data = await response.json();
-    if (data.valid) {
-      statusDiv.textContent = `Zalogowano jako: ${data.username.slice(11)}`;
-      statusDiv.classList.remove("status-fail");
-      statusDiv.classList.add("status-ok");
-    } else {
-      statusDiv.textContent = `Błąd tokena: ${data.error.match(/'detail': '([^']+)'/)?.[1] || data.error}`;
 
-      statusDiv.classList.remove("status-ok");
-      statusDiv.classList.add("status-fail");
+    clearTimeout(timeoutId);
+    _currentTokenCheck.inProgress = false;
+    _currentTokenCheck.controller = null;
+
+    // ALWAYS read text first (never hang on resp.json())
+    const raw = await resp.text();
+    console.log("[checkToken] raw response text:", raw, "status:", resp.status, "headers:", [...resp.headers.entries()]);
+
+    // Try parse JSON safely if looks like JSON
+    let data = null;
+    const trimmed = raw.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        data = JSON.parse(trimmed);
+      } catch (e) {
+        console.warn("[checkToken] JSON.parse failed:", e);
+        data = { valid: false, error: "Invalid JSON from server", raw };
+      }
+    } else {
+      // not JSON — handle text patterns like "pong username"
+      data = { valid: false, error: trimmed };
+      const m = trimmed.match(/pong\s+(.+)/i);
+      if (m) {
+        data = { valid: true, username: m[1].trim() };
+      } else if (trimmed && ["ok","success","valid","pong"].includes(trimmed.toLowerCase())) {
+        data = { valid: true, username: "zalogowany" };
+      }
     }
-  } catch (e) {
-    console.error(e);
-    statusDiv.textContent = "Błąd komunikacji z serwerem API.";
-    statusDiv.classList.remove("status-ok");
-    statusDiv.classList.add("status-fail");
+
+    // Now update UI based on parsed data
+    if (data && data.valid) {
+      statusDiv.textContent = "✅ Token poprawny";
+      statusDiv.className = "status-ok";
+      const uname = (data.username || "Nieznany użytkownik").toString();
+      document.getElementById("token-username").textContent = `Zalogowano jako: ${uname}`;
+      document.getElementById("token-username").className = "status-username";
+    } else {
+      const errText = (data && (data.error || data.message)) || "Nieznany błąd";
+      statusDiv.textContent = `❌ Błąd tokena: ${errText}`;
+      statusDiv.className = "status-fail";
+      document.getElementById("token-username").textContent = "";
+    }
+  } catch (err) {
+    clearTimeout(timeoutId);
+    _currentTokenCheck.inProgress = false;
+    _currentTokenCheck.controller = null;
+
+    console.error("[checkToken] fetch error:", err);
+    if (err.name === "AbortError") {
+      statusDiv.textContent = "⏱️ Przekroczono czas oczekiwania (frontend). Spróbuj ponownie.";
+    } else {
+      statusDiv.textContent = `❌ Błąd komunikacji: ${err.message || err}`;
+    }
+    statusDiv.className = "status-fail";
+    document.getElementById("token-username").textContent = "";
   }
 }
+
+
+
+
 
 async function refreshLogs() {
   const logsBody = document.getElementById("logs-body");
