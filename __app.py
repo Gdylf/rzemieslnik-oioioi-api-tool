@@ -22,6 +22,17 @@ import threading
 import json
 import os
 import argparse
+import base64
+import subprocess
+import tempfile
+import pandas as pd
+import re
+import time
+import sys
+import atexit
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
@@ -269,32 +280,141 @@ def clear_logs():
         logs.clear()
     return jsonify({'success': True})
 
+def connect_fastest_vpngate(country_code=None):
+    LIVE_URL = "https://www.vpngate.net/api/iphone/"
+    CACHE_PATH = os.path.join(os.path.dirname(__file__), "vpngate_cache.csv")
 
-# --- New entry point ---
+    data = None
+    try:
+        # --- Try live fetch ---
+        print("🌍 Fetching VPN Gate server list (HTTPS, auto-refresh cache)...")
+        session = requests.Session()
+        session.headers.update({'User-Agent': 'Python VPN Client'})
+        response = session.get(LIVE_URL, timeout=20)
+        response.raise_for_status()
+        data = response.text.splitlines()
+        print(f"✅ Fetched {len(data)} lines from live VPN Gate API")
+
+        # --- Save/update cache ---
+        with open(CACHE_PATH, 'w') as f:
+            f.write(response.text)
+        print(f"💾 VPN Gate list cached/updated at {CACHE_PATH}")
+
+    except Exception as e:
+        print(f"⚠️ Could not fetch live VPN Gate list: {e}")
+        if os.path.exists(CACHE_PATH):
+            print(f"ℹ️ Falling back to cached VPN Gate list ({CACHE_PATH})")
+            with open(CACHE_PATH, 'r') as f:
+                data = f.read().splitlines()
+            print(f"✅ Loaded {len(data)} lines from cache")
+        else:
+            print("❌ No cached VPN Gate list available. Aborting VPN connection.")
+            return None
+
+    # --- Parse CSV data ---
+    lines = [line for line in data if line and not line.startswith('*')]
+    if not lines:
+        print("❌ No usable VPN server data available.")
+        return None
+
+    header = lines[0].strip().split(',')
+    records = [line.split(',') for line in lines[1:] if line.strip()]
+    df = pd.DataFrame(records, columns=[h.strip().replace('\ufeff', '') for h in header])
+
+    # --- Identify hostname/IP column ---
+    hostname_col = next((c for c in ["HostName", "IP", "IP Address"] if c in df.columns), None)
+    if not hostname_col:
+        print(f"❌ Could not find HostName/IP column. Columns: {df.columns.tolist()}")
+        return None
+
+    # --- Filter by country if provided ---
+    if country_code:
+        df = df[df["CountryShortName"].str.upper() == country_code.upper()]
+        if df.empty:
+            print("⚠️ No servers found for that country; using global list")
+            df = pd.DataFrame(records, columns=header)
+
+    # --- Sort by Score ---
+    df["Score"] = pd.to_numeric(df.get("Score", 0), errors="coerce").fillna(0)
+    df = df.sort_values(by="Score", ascending=False)
+    server = df.iloc[0]
+
+    hostname = server[hostname_col]
+    country = server.get("CountryLong", "?")
+    print(f"🚀 Connecting to fastest VPN Gate server: {hostname} ({country})")
+
+    # --- Decode and patch .ovpn config ---
+    try:
+        ovpn_data = base64.b64decode(server["OpenVPN_ConfigData_Base64"])
+        ovpn_text = ovpn_data.decode(errors="ignore")
+        if "data-ciphers" not in ovpn_text:
+            ovpn_text += "\n# Patch: add data-ciphers for OpenVPN 2.6+\ndata-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-128-CBC\n"
+    except Exception as e:
+        print(f"❌ Could not decode OpenVPN config: {e}")
+        return None
+
+    tmpfile = tempfile.NamedTemporaryFile(delete=False, suffix=".ovpn")
+    tmpfile.write(ovpn_text.encode())
+    tmpfile.close()
+
+    # --- Start OpenVPN ---
+    cmd = ["sudo", "openvpn", "--config", tmpfile.name]
+    vpn_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+    print("🔗 OpenVPN process started, waiting for connection...")
+    connected = False
+    for line in vpn_process.stdout:
+        print(line, end="")
+        if "Initialization Sequence Completed" in line:
+            connected = True
+            break
+        if re.search(r"AUTH_FAILED|TLS Error|Connection reset|SIGTERM", line):
+            print("❌ VPN connection failed early.")
+            vpn_process.terminate()
+            break
+
+    if connected:
+        time.sleep(3)
+        try:
+            ip = requests.get("https://api.ipify.org", timeout=10).text
+            print(f"✅ VPN connected. External IP: {ip}")
+        except Exception:
+            print("⚠️ Could not verify external IP (VPN may still be active).")
+    else:
+        print("⚠️ VPN did not connect successfully.")
+
+    return vpn_process
+
 def main():
     """Entry point for running the Rzemieślnik OIOIOI API Server."""
-    import argparse
-    import sys
-
     parser = argparse.ArgumentParser(description="Rzemieślnik OIOIOI API Server")
     parser.add_argument('--target', type=str, default="https://wyzwania.programuj.edu.pl")
     parser.add_argument('--port', type=int, default=4000)
+    parser.add_argument('--country', type=str, help="Optional country code for VPN (e.g., JP, US, KR)")
     args = parser.parse_args()
 
     global BASE_URL
     BASE_URL = args.target
     app.config['BASE_URL'] = BASE_URL
 
-    print("🛠️ Uruchamianie Rzemieślnik OIOIOI API Server (Flask)...")
+    print("——————————————————————————————————————————————")
+    print("🛠️ Starting Rzemieślnik OIOIOI API Server")
     print(f"🌐 Cel: {BASE_URL}")
     print(f"🚪 Port: {args.port}")
     print("——————————————————————————————————————————————")
 
+    # 🚀 Connect to VPN Gate before starting the Flask server
+    vpn_process = connect_fastest_vpngate(args.vpn_country)
+
     try:
-        app.run(debug=True, host='0.0.0.0', port=args.port, ssl_context='adhoc')
+        app.run(host='0.0.0.0', port=args.port, ssl_context='adhoc')
     except KeyboardInterrupt:
-        print("\n🛑 Zatrzymano serwer ręcznie (Ctrl+C).")
+        print("\n🛑 Server Stopped (Ctrl+C).")
+        if vpn_process:
+            print("🔌 Disconnecting VPN...")
+            vpn_process.terminate()
         sys.exit(0)
+
 
 
 if __name__ == "__main__":

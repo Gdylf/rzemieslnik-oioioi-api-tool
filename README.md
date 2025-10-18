@@ -30,6 +30,8 @@ Wymagania
   -time<br/>
   -tkinter<br/>
   -webbrowser<br/>
+  -pandas<br/>
+- OpenVPN
 
 
 Instalacja
@@ -77,6 +79,9 @@ Flagi Opcjonalne
 
 2. `--target`
  zmiana celu dla api np.`--target https://szkopul.edu.pl` zmienia cel dla api na szkopuł
+
+3. `--country`
+ zmienia kraj vpn
 
 CLI (WIP)
 -------
