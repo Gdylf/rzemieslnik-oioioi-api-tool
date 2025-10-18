@@ -1,15 +1,10 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/bluebird" type="text/css"/> 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Rzemieślnicy Inc.</title>
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
-    </style>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ url_for('static', filename='vendor/tailwind.js') }}"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -24,20 +19,13 @@
         }
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="{{ url_for('static', filename='vendor/feather.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/PT_Sans.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/Michroma.css') }}">
+
+
 
     <style>
-        /* small UI tweaks to match script behaviour */
-        body{
-            font-family: "PT Sans", sans-serif;
-            font-weight: 400;
-            font-style: normal;
-        }
-        h1, h2{ 
-            font-family: "Michroma", sans-serif;
-            font-weight: 400;
-            font-style: normal;
-        }
         .dropzone-active, .drag-over {
             border-color: #8b5cf6 !important;
             background-color: rgba(139, 92, 246, 0.06) !important;
