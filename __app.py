@@ -291,7 +291,7 @@ def main():
     print("——————————————————————————————————————————————")
 
     try:
-        app.run(debug=True, host='0.0.0.0', port=args.port)
+        app.run(debug=True, host='0.0.0.0', port=args.port, ssl_context='adhoc')
     except KeyboardInterrupt:
         print("\n🛑 Zatrzymano serwer ręcznie (Ctrl+C).")
         sys.exit(0)
