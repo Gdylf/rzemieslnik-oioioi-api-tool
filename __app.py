@@ -391,6 +391,7 @@ def main():
     parser.add_argument('--target', type=str, default="https://wyzwania.programuj.edu.pl")
     parser.add_argument('--port', type=int, default=4000)
     parser.add_argument('--country', type=str, help="Optional country code for VPN (e.g., JP, US, KR)")
+    parser.add_argument('--insecure', action='store_true', help="Start server without VPN connection")
     args = parser.parse_args()
 
     global BASE_URL
@@ -401,10 +402,15 @@ def main():
     print("🛠️ Starting Rzemieślnik OIOIOI API Server")
     print(f"🌐 Cel: {BASE_URL}")
     print(f"🚪 Port: {args.port}")
+    if args.no_vpn:
+        print("⚡ Running Without VPN")
+    else:
+        print(f"🛡️ VPN Country: {args.country or 'Any'}")
     print("——————————————————————————————————————————————")
 
-    # 🚀 Connect to VPN Gate before starting the Flask server
-    vpn_process = connect_fastest_vpngate(args.vpn_country)
+    vpn_process = None
+    if not args.no_vpn:
+        vpn_process = connect_fastest_vpngate(args.country)
 
     try:
         app.run(host='0.0.0.0', port=args.port, ssl_context='adhoc')
@@ -414,6 +420,7 @@ def main():
             print("🔌 Disconnecting VPN...")
             vpn_process.terminate()
         sys.exit(0)
+
 
 
 
