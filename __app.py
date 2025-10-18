@@ -1,18 +1,3 @@
-'''———————————No commits?———————————
-⠀⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝
-⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇
-⠀⠀⢀⢀⢄⢬⢪⡪⡎⣆⡈⠚⠜⠕⠇⠗⠝⢕⢯⢫⣞⣯⣿⣻⡽⣏⢗⣗⠏⠀
-⠀⠪⡪⡪⣪⢪⢺⢸⢢⢓⢆⢤⢀⠀⠀⠀⠀⠈⢊⢞⡾⣿⡯⣏⢮⠷⠁⠀⠀
-⠀⠀⠀⠈⠊⠆⡃⠕⢕⢇⢇⢇⢇⢇⢏⢎⢎⢆⢄⠀⢑⣽⣿⢝⠲⠉⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⡿⠂⠠⠀⡇⢇⠕⢈⣀⠀⠁⠡⠣⡣⡫⣂⣿⠯⢪⠰⠂⠀⠀⠀⠀
-⠀⠀⠀⠀⡦⡙⡂⢀⢤⢣⠣⡈⣾⡃⠠⠄⠀⡄⢱⣌⣶⢏⢊⠂⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⢝⡲⣜⡮⡏⢎⢌⢂⠙⠢⠐⢀⢘⢵⣽⣿⡿⠁⠁⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠨⣺⡺⡕⡕⡱⡑⡆⡕⡅⡕⡜⡼⢽⡻⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⣼⣳⣫⣾⣵⣗⡵⡱⡡⢣⢑⢕⢜⢕⡝⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⣴⣿⣾⣿⣿⣿⡿⡽⡑⢌⠪⡢⡣⣣⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⡟⡾⣿⢿⢿⢵⣽⣾⣼⣘⢸⢸⣞⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠁⠇⠡⠩⡫⢿⣝⡻⡮⣒⢽⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-—————————————————————————————'''
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import requests
@@ -29,400 +14,242 @@ import pandas as pd
 import re
 import time
 import sys
-import atexit
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from pathlib import Path
+import platform
 
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder="static")
 CORS(app)
 
-# Lock dla bezpiecznego dodawania logów
+# Thread-safe logs
 logs_lock = threading.Lock()
-logs = [] 
+logs = []
 
-# Domyślny adres serwera OIOIOI (można nadpisać przez --domain)
 DEFAULT_BASE_URL = "https://wyzwania.programuj.edu.pl"
-app.config['BASE_URL'] = DEFAULT_BASE_URL
+app.config["BASE_URL"] = DEFAULT_BASE_URL
 
-# Ścieżka do pliku z kodem Spam (w tym samym katalogu co app.py)
-Spam_CODE_PATH = os.path.join(os.path.dirname(__file__), 'spam.cpp') 
+SPAM_CODE_PATH = Path(__file__).resolve().parent / "spam.cpp"
 
 
 def add_log(contest, problem, status, response_text):
-    """Dodaje wpis do logów w sposób bezpieczny wątkowo, uwzględniając contest."""
     with logs_lock:
-        logs.append({
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'contest': contest, 
-            'problem': problem,
-            'status': status,
-            'response': response_text[:200]
-        })
+        logs.append(
+            {
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "contest": contest,
+                "problem": problem,
+                "status": status,
+                "response": response_text[:200],
+            }
+        )
 
 
 def submit_solution(token, contest_id, problem, code):
-    """Send a single submission to OIOIOI API."""
     url = f"{app.config['BASE_URL']}/api/c/{contest_id}/submit/{problem}"
-
-    headers = {
-        'Authorization': f'Token {token}'
-    }
-
-    files = {'file': ('solution.cpp', code, 'text/x-c++src')}
-
+    headers = {"Authorization": f"Token {token}"}
+    files = {"file": ("solution.cpp", code, "text/x-c++src")}
     try:
         response = requests.post(url, files=files, headers=headers, timeout=30)
-        content_type = response.headers.get('Content-Type', '')
-
-        if 'application/json' in content_type:
-            json_response = response.json()
-            status = 'OK' if response.status_code == 200 else 'FAIL'
-            response_text = json.dumps(json_response, ensure_ascii=False)
+        if "application/json" in response.headers.get("Content-Type", ""):
+            resp_json = response.json()
+            status = "OK" if response.status_code == 200 else "FAIL"
+            add_log(
+                contest_id, problem, status, json.dumps(resp_json, ensure_ascii=False)
+            )
         else:
-            status = 'FAIL' if response.status_code >= 400 else 'OK'
-            response_text = f"HTML [{response.status_code}]: {response.text[:100]}"
-
-        add_log(contest_id, problem, status, response_text)
+            status = "FAIL" if response.status_code >= 400 else "OK"
+            add_log(contest_id, problem, status, response.text[:100])
         return response.status_code == 200
-
     except requests.exceptions.RequestException as e:
-        add_log(contest_id, problem, 'FAIL', f"Exception: {str(e)}")
+        add_log(contest_id, problem, "FAIL", str(e))
         return False
 
 
-# --- Routing ---
-
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 
-@app.route('/check_token', methods=['POST'])
+@app.route("/check_token", methods=["POST"])
 def check_token():
-    """Sprawdza poprawność tokena przez endpoint /api/auth_ping"""
     data = request.json
-    token = data.get('token', '')
-    
+    token = data.get("token", "")
     if not token:
-        return jsonify({'valid': False, 'error': 'Brak tokena'})
-    
+        return jsonify({"valid": False, "error": "Brak tokena"})
     try:
-        url = f"{BASE_URL}/api/auth_ping"
-        headers = {'Authorization': f'Token {token}'} 
+        url = f"{app.config['BASE_URL']}/api/auth_ping"
+        headers = {"Authorization": f"Token {token}"}
         response = requests.get(url, headers=headers, timeout=10)
-        
         if response.status_code == 200:
-            try:
-                user_data = response.json()
-                username = user_data.get('username', user_data.get('user', {}).get('username', 'zalogowany'))
-                return jsonify({'valid': True, 'username': username})
-            except:
-                return jsonify({'valid': True, 'username': f'zalogowany {user_data[5:]}'})
+            user_data = response.json()
+            username = user_data.get(
+                "username", user_data.get("user", {}).get("username", "zalogowany")
+            )
+            return jsonify({"valid": True, "username": username})
         else:
-            error_msg = f'Status: {response.status_code}'
-            try:
-                error_data = response.json()
-                error_msg += f' - {error_data}'
-            except:
-                error_msg += f' - {response.text[:100]}'
-            return jsonify({'valid': False, 'error': error_msg})
-            
+            return jsonify({"valid": False, "error": f"Status {response.status_code}"})
     except Exception as e:
-        return jsonify({'valid': False, 'error': str(e)})
+        return jsonify({"valid": False, "error": str(e)})
 
 
-@app.route('/single_submit', methods=['POST'])
+@app.route("/single_submit", methods=["POST"])
 def single_submit():
-    """Wysyła pojedynczy submit X razy"""
     data = request.json
-    token = data.get('token')
-    contest_id = data.get('contest')
-    problem = data.get('problem')
-    code = data.get('code')
-    repeat = int(data.get('repeat', 1))
-    concurrency = int(data.get('concurrency', 5))
-    
+    token = data.get("token")
+    contest_id = data.get("contest")
+    problem = data.get("problem")
+    code = data.get("code")
+    repeat = int(data.get("repeat", 1))
+    concurrency = int(data.get("concurrency", 5))
+
     if not all([token, contest_id, problem, code]):
-        return jsonify({'success': False, 'error': 'Brak wymaganych danych: token, contest, problem lub kod'}), 400
-    
-    with ThreadPoolExecutor(max_workers=concurrency) as executor:
-        futures = [executor.submit(submit_solution, token, contest_id, problem, code) for _ in range(repeat)]
-        results = [f.result() for f in as_completed(futures)] 
-    
-    success_count = sum(results)
-    return jsonify({
-        'success': True,
-        'message': f'Wysłano {repeat} submitów do {problem} w kontście {contest_id}. Sukces: {success_count}/{repeat}'
-    })
+        return jsonify(
+            {"success": False, "error": "Missing token/contest/problem/code"}
+        ), 400
 
-
-@app.route('/multi_submit', methods=['POST'])
-def multi_submit():
-    """Wysyła submity do wielu zadań równocześnie"""
-    data = request.json
-    token = data.get('token')
-    contest_id = data.get('contest')
-    problems_str = data.get('problems', '')
-    code = data.get('code')
-    repeat = int(data.get('repeat', 1))
-    concurrency = int(data.get('concurrency', 10))
-    
-    if not all([token, contest_id, problems_str, code]):
-        return jsonify({'success': False, 'error': 'Brak wymaganych danych: token, contest, problemy lub kod'}), 400
-    
-    problems = [p.strip() for p in problems_str.split(',') if p.strip()]
-    
-    if not problems:
-        return jsonify({'success': False, 'error': 'Nie podano zadań'}), 400
-    
-    tasks = [(token, contest_id, problem, code) for problem in problems for _ in range(repeat)]
-    
-    with ThreadPoolExecutor(max_workers=concurrency) as executor:
-        futures = [executor.submit(submit_solution, *task) for task in tasks]
+    with ThreadPoolExecutor(max_workers=concurrency) as ex:
+        futures = [
+            ex.submit(submit_solution, token, contest_id, problem, code)
+            for _ in range(repeat)
+        ]
         results = [f.result() for f in as_completed(futures)]
-    
-    success_count = sum(results)
-    total = len(tasks)
-    
-    return jsonify({
-        'success': True,
-        'message': f'Wysłano {total} submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
-    })
+
+    success = sum(results)
+    return jsonify(
+        {"success": True, "message": f"{success}/{repeat} submissions successful"}
+    )
 
 
-@app.route('/spam_submit', methods=['POST'])
-def Spam_submit():
-    """Wysyła Spam submit, kod ładowany z pliku Spam.cpp"""
-    data = request.get_json(force=True)
-    token = data.get('token')
-    contest_id = data.get('contest')
-    problem = data.get('problem') or data.get('problems')
-    repeat = int(data.get('repeat', 1))
-    concurrency = int(data.get('concurrency', 5))
-    
-    if not all([token, contest_id, problem]):
-        return jsonify({'success': False, 'error': 'Brak wymaganych danych: token, contest lub problem'}), 400
-    
-    # Wczytanie kodu z pliku Spam.cpp
-    try:
-        with open(Spam_CODE_PATH, 'r') as f:
-            Spam_code = f.read()
-    except FileNotFoundError:
-        return jsonify({'success': False, 'error': f'Błąd: Nie znaleziono pliku {os.path.basename(Spam_CODE_PATH)} w katalogu aplikacji.'}), 500
-    except Exception as e:
-        return jsonify({'success': False, 'error': f'Błąd odczytu pliku {os.path.basename(Spam_CODE_PATH)}: {str(e)}'}), 500
-    
-    with ThreadPoolExecutor(max_workers=concurrency) as executor:
-        futures = [executor.submit(submit_solution, token, contest_id, problem, Spam_code) for _ in range(repeat)]
-        results = [f.result() for f in as_completed(futures)]
-    
-    success_count = sum(results)
-    return jsonify({
-        'success': True,
-        'message': f'Wysłano {repeat} spam submitów do {problem} w kontście {contest_id}. Sukces: {success_count}/{repeat}'
-    })
-
-
-@app.route('/multi_Spam_submit', methods=['POST'])
-def multi_Spam_submit():
-    """Wysyła Spam submity do wielu zadań równocześnie"""
-    data = request.json
-    token = data.get('token')
-    contest_id = data.get('contest')
-    problems_str = data.get('problems', '')
-    repeat = int(data.get('repeat', 1))
-    concurrency = int(data.get('concurrency', 10))
-    
-    if not all([token, contest_id, problems_str]):
-        return jsonify({'success': False, 'error': 'Brak wymaganych danych: token, contest lub problemy'}), 400
-    
-    problems = [p.strip() for p in problems_str.split(',') if p.strip()]
-    
-    if not problems:
-        return jsonify({'success': False, 'error': 'Nie podano zadań'}), 400
-    
-    # Wczytanie kodu Spam z pliku
-    try:
-        with open(Spam_CODE_PATH, 'r') as f:
-            Spam_code = f.read()
-    except FileNotFoundError:
-        return jsonify({'success': False, 'error': f'Błąd: Nie znaleziono pliku {os.path.basename(Spam_CODE_PATH)} w katalogu aplikacji.'}), 500
-    except Exception as e:
-        return jsonify({'success': False, 'error': f'Błąd odczytu pliku {os.path.basename(Spam_CODE_PATH)}: {str(e)}'}), 500
-    
-    tasks = [(token, contest_id, problem, Spam_code) for problem in problems for _ in range(repeat)]
-    
-    with ThreadPoolExecutor(max_workers=concurrency) as executor:
-        futures = [executor.submit(submit_solution, *task) for task in tasks]
-        results = [f.result() for f in as_completed(futures)]
-    
-    success_count = sum(results)
-    total = len(tasks)
-    
-    return jsonify({
-        'success': True,
-        'message': f'🔥 Wysłano {total} spam submitów do {len(problems)} zadań w kontście {contest_id}. Sukces: {success_count}/{total}'
-    })
-
-
-@app.route('/get_logs', methods=['GET'])
+@app.route("/get_logs", methods=["GET"])
 def get_logs():
-    """Zwraca logi w formacie JSON"""
     with logs_lock:
-        return jsonify(logs[-100:][::-1]) 
+        return jsonify(logs[-100:][::-1])
 
 
-@app.route('/clear_logs', methods=['POST'])
+@app.route("/clear_logs", methods=["POST"])
 def clear_logs():
-    """Czyści logi"""
     with logs_lock:
         logs.clear()
-    return jsonify({'success': True})
+    return jsonify({"success": True})
+
 
 def connect_fastest_vpngate(country_code=None):
     LIVE_URL = "https://www.vpngate.net/api/iphone/"
-    CACHE_PATH = os.path.join(os.path.dirname(__file__), "vpngate_cache.csv")
+    CACHE_PATH = Path(__file__).resolve().parent / "vpngate_cache.csv"
+    OVPN_CONFIG_PATH = Path(__file__).resolve().parent / "fastest_vpn.ovpn"
 
-    data = None
     try:
-        # --- Try live fetch ---
-        print("🌍 Fetching VPN Gate server list (HTTPS, auto-refresh cache)...")
-        session = requests.Session()
-        session.headers.update({'User-Agent': 'Python VPN Client'})
-        response = session.get(LIVE_URL, timeout=20)
-        response.raise_for_status()
-        data = response.text.splitlines()
-        print(f"✅ Fetched {len(data)} lines from live VPN Gate API")
-
-        # --- Save/update cache ---
-        with open(CACHE_PATH, 'w') as f:
-            f.write(response.text)
-        print(f"💾 VPN Gate list cached/updated at {CACHE_PATH}")
-
+        print("🌍 Fetching VPN Gate server list...")
+        r = requests.get(LIVE_URL, timeout=20)
+        r.raise_for_status()
+        with open(CACHE_PATH, "w", encoding="utf-8") as f:
+            f.write(r.text)
+        data = r.text.splitlines()
     except Exception as e:
-        print(f"⚠️ Could not fetch live VPN Gate list: {e}")
-        if os.path.exists(CACHE_PATH):
-            print(f"ℹ️ Falling back to cached VPN Gate list ({CACHE_PATH})")
-            with open(CACHE_PATH, 'r') as f:
-                data = f.read().splitlines()
-            print(f"✅ Loaded {len(data)} lines from cache")
-        else:
-            print("❌ No cached VPN Gate list available. Aborting VPN connection.")
-            return None
+        print(f"⚠️ Could not fetch VPN list: {e}")
+        if not CACHE_PATH.exists():
+            print("❌ No local cache of VPN list found. Cannot proceed.")
+            return
+        print("ℹ️ Using cached VPN list.")
+        data = CACHE_PATH.read_text(encoding="utf-8").splitlines()
 
-    # --- Parse CSV data ---
-    lines = [line for line in data if line and not line.startswith('*')]
+    lines = [l for l in data if l and not l.startswith("*")]
     if not lines:
-        print("❌ No usable VPN server data available.")
-        return None
+        print("❌ No VPN servers found in the list.")
+        return
+    header = lines[0].split(",")
+    records = [l.split(",") for l in lines[1:]]
+    df = pd.DataFrame(
+        records, columns=[h.strip().replace("\ufeff", "") for h in header]
+    )
 
-    header = lines[0].strip().split(',')
-    records = [line.split(',') for line in lines[1:] if line.strip()]
-    df = pd.DataFrame(records, columns=[h.strip().replace('\ufeff', '') for h in header])
-
-    # --- Identify hostname/IP column ---
-    hostname_col = next((c for c in ["HostName", "IP", "IP Address"] if c in df.columns), None)
-    if not hostname_col:
-        print(f"❌ Could not find HostName/IP column. Columns: {df.columns.tolist()}")
-        return None
-
-    # --- Filter by country if provided ---
     if country_code:
-        df = df[df["CountryShortName"].str.upper() == country_code.upper()]
-        if df.empty:
-            print("⚠️ No servers found for that country; using global list")
-            df = pd.DataFrame(records, columns=header)
+        filtered_df = df[df["CountryShortName"].str.upper() == country_code.upper()]
+        if filtered_df.empty:
+            print(f"⚠️ No VPNs found for country '{country_code}'. Using any country.")
+        else:
+            df = filtered_df
 
-    # --- Sort by Score ---
-    df["Score"] = pd.to_numeric(df.get("Score", 0), errors="coerce").fillna(0)
-    df = df.sort_values(by="Score", ascending=False)
-    server = df.iloc[0]
+    df["Score"] = pd.to_numeric(df["Score"], errors="coerce").fillna(0)
+    df = df.sort_values("Score", ascending=False)
 
-    hostname = server[hostname_col]
-    country = server.get("CountryLong", "?")
-    print(f"🚀 Connecting to fastest VPN Gate server: {hostname} ({country})")
+    if df.empty:
+        print("❌ No suitable VPN servers found.")
+        return
 
-    # --- Decode and patch .ovpn config ---
+    s = df.iloc[0]
     try:
-        ovpn_data = base64.b64decode(server["OpenVPN_ConfigData_Base64"])
-        ovpn_text = ovpn_data.decode(errors="ignore")
-        if "data-ciphers" not in ovpn_text:
-            ovpn_text += "\n# Patch: add data-ciphers for OpenVPN 2.6+\ndata-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-128-CBC\n"
-    except Exception as e:
-        print(f"❌ Could not decode OpenVPN config: {e}")
-        return None
+        ovpn_data = base64.b64decode(s["OpenVPN_ConfigData_Base64"])
+    except Exception:
+        print("❌ Failed to decode VPN configuration.")
+        return
 
-    tmpfile = tempfile.NamedTemporaryFile(delete=False, suffix=".ovpn")
-    tmpfile.write(ovpn_text.encode())
-    tmpfile.close()
+    with open(OVPN_CONFIG_PATH, "wb") as f:
+        f.write(ovpn_data)
 
-    # --- Start OpenVPN ---
-    cmd = ["sudo", "openvpn", "--config", tmpfile.name]
-    vpn_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    print(f"✅ VPN configuration saved to: {OVPN_CONFIG_PATH}")
+    print("\n--- Platform Instructions ---")
+    system = platform.system().lower()
+    if system.startswith("win"):
+        print("🪟 Windows:")
+        print(
+            f"   1. Install OpenVPN Connect: https://openvpn.net/client-connect-vpn-for-windows/"
+        )
+        print(
+            f"   2. Import the downloaded file '{OVPN_CONFIG_PATH.name}' into the client."
+        )
+        print(f"   3. Connect to the VPN.")
+    elif "ANDROID_ROOT" in os.environ or "ANDROID_DATA" in os.environ:
+        print("🤖 Android (Termux/other):")
+        print(
+            f"   1. Install 'OpenVPN for Android': https://play.google.com/store/apps/details?id=de.blinkt.openvpn"
+        )
+        print(f"   2. Import the file '{OVPN_CONFIG_PATH.name}' into the app.")
+        print(f"   3. The file is located at: {OVPN_CONFIG_PATH}")
+    elif system.startswith("linux"):
+        print("🐧 Linux:")
+        print(
+            f"   1. Install OpenVPN: `sudo apt-get install openvpn` or `sudo dnf install openvpn`"
+        )
+        print(f"   2. Connect using: `sudo openvpn --config {OVPN_CONFIG_PATH.name}`")
+    else:  # Generic instructions for others (like macOS)
+        print("🍎 macOS / Other:")
+        print(
+            f"   1. Install an OpenVPN client like Tunnelblick: https://tunnelblick.net/"
+        )
+        print(f"   2. Import the file '{OVPN_CONFIG_PATH.name}' and connect.")
+    print("---------------------------\n")
+    print("🚦 Please connect to the VPN manually before proceeding.")
+    input("   Press Enter to continue once VPN is connected...")
 
-    print("🔗 OpenVPN process started, waiting for connection...")
-    connected = False
-    for line in vpn_process.stdout:
-        print(line, end="")
-        if "Initialization Sequence Completed" in line:
-            connected = True
-            break
-        if re.search(r"AUTH_FAILED|TLS Error|Connection reset|SIGTERM", line):
-            print("❌ VPN connection failed early.")
-            vpn_process.terminate()
-            break
-
-    if connected:
-        time.sleep(3)
-        try:
-            ip = requests.get("https://api.ipify.org", timeout=10).text
-            print(f"✅ VPN connected. External IP: {ip}")
-        except Exception:
-            print("⚠️ Could not verify external IP (VPN may still be active).")
-    else:
-        print("⚠️ VPN did not connect successfully.")
-
-    return vpn_process
 
 def main():
-    """Entry point for running the Rzemieślnik OIOIOI API Server."""
-    parser = argparse.ArgumentParser(description="Rzemieślnik OIOIOI API Server")
-    parser.add_argument('--target', type=str, default="https://wyzwania.programuj.edu.pl")
-    parser.add_argument('--port', type=int, default=4000)
-    parser.add_argument('--country', type=str, help="Optional country code for VPN (e.g., JP, US, KR)")
-    parser.add_argument('--insecure', action='store_true', help="Start server without VPN connection")
+    parser = argparse.ArgumentParser(description="OIOIOI API Server")
+    parser.add_argument("--target", type=str, default=DEFAULT_BASE_URL)
+    parser.add_argument("--port", type=int, default=4000)
+    parser.add_argument("--country", type=str, help="VPN country code")
+    parser.add_argument("--no_vpn", action="store_true", help="Run without VPN")
     args = parser.parse_args()
 
-    global BASE_URL
-    BASE_URL = args.target
-    app.config['BASE_URL'] = BASE_URL
+    app.config["BASE_URL"] = args.target
 
-    print("——————————————————————————————————————————————")
-    print("🛠️ Starting Rzemieślnik OIOIOI API Server")
-    print(f"🌐 Cel: {BASE_URL}")
-    print(f"🚪 Port: {args.port}")
-    if args.no_vpn:
-        print("⚡ Running Without VPN")
-    else:
-        print(f"🛡️ VPN Country: {args.country or 'Any'}")
-    print("——————————————————————————————————————————————")
-
-    vpn_process = None
     if not args.no_vpn:
-        vpn_process = connect_fastest_vpngate(args.country)
+        connect_fastest_vpngate(args.country)
 
-    try:
-        app.run(host='0.0.0.0', port=args.port, ssl_context='adhoc')
-    except KeyboardInterrupt:
-        print("\n🛑 Server Stopped (Ctrl+C).")
-        if vpn_process:
-            print("🔌 Disconnecting VPN...")
-            vpn_process.terminate()
-        sys.exit(0)
+    print("——————————————————————————————————————————————")
+    print("🛠️ Starting OIOIOI API Server")
+    print(f"🌐 Target: {args.target}")
+    print(f"🚪 Port: {args.port}")
+    print(f"🖥️ Platform: {platform.system()}")
+    if args.no_vpn:
+        print("⚡ Running without VPN")
+    else:
+        print("🔐 Running with VPN")
+    print("——————————————————————————————————————————————")
 
-
+    app.run(host="0.0.0.0", port=args.port, ssl_context="adhoc")
 
 
 if __name__ == "__main__":
     main()
+
