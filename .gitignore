@@ -1,0 +1,12 @@
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/settings.json
+__pycache__/
+Pobieracz Pobieracz/__pycache__/
+__pycache__/short_name_fetcher.cpython-311.pyc
+Pobieracz Problemow/__pycache__/short_name_fetcher.cpython-313.pyc
+logs/app_logs.json
+hasoopc.txt
+rzemioslo/*
+fastest_vpn.ovpn
+generate_dependencies.py

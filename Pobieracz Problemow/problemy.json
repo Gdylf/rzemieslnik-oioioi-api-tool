@@ -1,0 +1,26 @@
+[
+    {
+        "short_name": "nai",
+        "full_name": "Na ile czesci podzielic placek ?"
+    },
+    {
+        "short_name": "naw",
+        "full_name": "Nawiasy"
+    },
+    {
+        "short_name": "nrw",
+        "full_name": "Nierownosci"
+    },
+    {
+        "short_name": "cok",
+        "full_name": "Czekolada"
+    },
+    {
+        "short_name": "sza",
+        "full_name": "Szaszlyk"
+    },
+    {
+        "short_name": "zmi",
+        "full_name": "Zmiennoliterowe slowo"
+    }
+]

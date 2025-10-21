@@ -1,0 +1,16 @@
+@font-face {
+    font-family: 'Michroma';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/michroma-v21-latin_latin-ext/michroma-v21-latin_latin-ext-regular.eot');
+    src: url('fonts/michroma-v21-latin_latin-ext/michroma-v21-latin_latin-ext-regular.eot?#iefix') format('embedded-opentype'),
+         url('fonts/michroma-v21-latin_latin-ext/michroma-v21-latin_latin-ext-regular.woff2') format('woff2'),
+         url('fonts/michroma-v21-latin_latin-ext/michroma-v21-latin_latin-ext-regular.woff') format('woff'),
+         url('fonts/michroma-v21-latin_latin-ext/michroma-v21-latin_latin-ext-regular.ttf') format('truetype'),
+         url('fonts/michroma-v21-latin_latin-ext/michroma-v21-latin_latin-ext-regular.svg#Michroma') format('svg');
+}
+
+h1, h2 {
+    font-family: 'Michroma', sans-serif;
+}

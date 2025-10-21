@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Rzemieślnicy Inc.</title>
+    <script src="{{ url_for('static', filename='vendor/tailwind.js') }}"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: { extend: { colors: { primary: "#3b82f6", secondary: "#8b5cf6" } } },
+      };
+    </script>
+    <script src="{{ url_for('static', filename='vendor/feather.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/PT_Sans.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/Michroma.css') }}" />
+    <style>
+      /* minimal styles included from your original to keep visuals */
+      .checkbox-item { display:flex; gap:.5rem; align-items:center; padding:.45rem .6rem; cursor:pointer; border-radius:.375rem; }
+      .checkbox-item.selected { background-color: rgba(139,92,246,.12); }
+      .select-all-btn { padding:.4rem .8rem; background:#6b7280; color:white; border-radius:.375rem; border:none; cursor:pointer; }
+      .select-all-btn:hover { background:#8b5cf6; }
+      input[type="checkbox"], input[type="radio"] { width:18px; height:18px; }
+      .status-ok { color:#34d399; font-weight:600; }
+      .status-fail { color:#fb7185; font-weight:600; }
+      .logs-empty { color:#9ca3af; text-align:center; padding:1rem 0; }
+      .btn-mini { padding:.25rem .5rem; border-radius:.375rem; font-size:.9rem ; }
+      .response-text { max-width:40ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    </style>
+  </head>
+
+  <body class="dark bg-gray-900 text-gray-200 min-h-screen">
+    <div class="container mx-auto bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-700">
+      <div class="header bg-gradient-to-r from-blue-900 to-violet-900 p-8 text-center border-b border-gray-700">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-white">Rzemieślnicy Inc.</h1>
+      </div>
+
+      <div class="content p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Left Column -->
+          <div class="lg:col-span-2 space-y-6">
+            <div class="bg-blue-900/20 p-4 rounded-lg border border-blue-800/50">
+              <strong class="text-blue-400">Instrukcja:</strong>
+              <span class="text-blue-100">Wprowadź swój token API, wybierz kontest i przeciągnij plik <code>problemy.json</code> aby aktywować funkcjonalność.</span>
+            </div>
+
+            <!-- Dropzone -->
+            <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
+              <h2 class="text-xl font-semibold mb-4 text-violet-300">Załaduj problemy.json</h2>
+              <div id="problemy-drop" class="dropzone border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-violet-400 bg-gray-700/30 flex flex-col items-center justify-center">
+                <div class="mb-2 text-violet-400 flex items-center justify-center"><i data-feather="upload" class="w-12 h-12"></i></div>
+                <div class="font-medium text-gray-200">Problemy.json</div>
+                <div class="text-sm text-gray-400">Kliknij lub przeciągnij plik tutaj</div>
+                <input type="file" class="hidden" id="problemy-file" accept=".json" />
+              </div>
+              <div id="problemy-status" class="text-sm mt-2 text-blue-300"></div>
+            </div>
+
+            <!-- Contest picker -->
+            <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
+              <h2 class="text-xl font-semibold mb-4 text-violet-300">Wybór kontestu</h2>
+              <div class="relative">
+                <input id="contest-input" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Wybierz lub wpisz nazwę kontestu..." oninput="filterContests()" onclick="toggleContestList(true)" />
+                <div id="contest-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"></div>
+              </div>
+            </div>
+
+            <!-- Token -->
+            <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary">
+              <h2 class="text-xl font-semibold mb-4 text-violet-300">Autoryzacja (Token API)</h2>
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-300 mb-1">Token API:</label>
+                <input type="text" id="token" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Wklej swój token API..." />
+              </div>
+              <button id="check-token-btn" onclick="checkToken()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center">
+                <i data-feather="key" class="mr-2 w-4"></i>Sprawdź token
+              </button>
+              <div id="token-status" class="mt-2 text-sm status-message"></div>
+              <div id="token-username" class="mt-1 text-sm"></div>
+            </div>
+          </div>
+
+          <!-- Right Column: Token DB -->
+          <div class="bg-gray-700/50 p-4 rounded-lg border-l-4 border-secondary h-fit sticky top-6">
+            <h2 class="text-xl font-semibold mb-4 text-violet-300">Baza tokenów</h2>
+            <button class="btn-mini btn-use bg-sky-500/50" onclick="checkAllTokens()" style="padding:5px">Sprawdź wszystkie tokeny</button>
+            <div class="bg-gray-800 rounded-md overflow-hidden mt-3">
+              <div class="overflow-auto max-h-100">
+                <table class="w-full">
+                  <thead class="bg-gray-900">
+                    <tr>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Użytkownik</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Token</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Status</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Akcje</th>
+                    </tr>
+                  </thead>
+                  <tbody id="token-db-body" class="divide-y divide-gray-700">
+                    <tr><td colspan="4" class="px-4 py-4 text-center text-gray-400">Ładowanie tokenów...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit section (unified filter) -->
+        <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
+          <h2 class="text-xl font-semibold mb-4 text-violet-300">Submit</h2>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-1">Zadania:</label>
+            <div class="relative">
+              <input id="multi-problems-text" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Filtruj i wybierz zadania..." />
+              <div id="multi-problems-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"></div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-1">Kod źródłowy:</label>
+            <textarea id="multi-code" rows="10" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Wklej kod tutaj..."></textarea>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-300 mb-1">Lub wybierz plik:</label>
+            <input type="file" id="multi-file" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:bg-blue-600 file:text-white hover:file:bg-blue-700" />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Powtórzeń na zadanie:</label>
+              <input type="number" id="multi-repeat" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Maks. wątki:</label>
+              <input type="number" id="multi-concurrency" value="10" min="1" max="20" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200" />
+            </div>
+          </div>
+
+          <button onclick="multiSubmit()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md w-full">
+            <i data-feather="send" class="mr-2 inline align-middle w-4"></i> Wyślij Submit
+          </button>
+        </div>
+
+        <!-- Spam section (unified filter) -->
+        <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6">
+          <h2 class="text-xl font-semibold mb-4 text-violet-300">Spam</h2>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-1">Zadania:</label>
+            <div class="relative">
+              <input id="multi-sybau-problems-text" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Filtruj i wybierz zadania..." />
+              <div id="multi-sybau-problems-list" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Powtórzeń na zadanie:</label>
+              <input type="number" id="multi-sybau-repeat" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Maks. wątki:</label>
+              <input type="number" id="multi-sybau-concurrency" value="10" min="1" max="20" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200" />
+            </div>
+          </div>
+
+          <button onclick="multiSybauSubmit()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-md w-full">
+            <i data-feather="zap" class="mr-2 inline align-middle w-4"></i> Wyślij Spam
+          </button>
+        </div>
+
+        <!-- Logs -->
+        <div class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-violet-300">Logi submitów</h2>
+            <div class="flex gap-2">
+              <button onclick="refreshLogs()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">Odśwież</button>
+              <button onclick="clearLogs()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm">Wyczyść</button>
+            </div>
+          </div>
+
+          <div class="bg-gray-800 rounded-md overflow-hidden">
+            <div class="overflow-auto max-h-96">
+              <table class="w-full">
+                <thead class="bg-gray-900">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Czas</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Short name (kontest)</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Odpowiedź serwera</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-body" class="divide-y divide-gray-700">
+                  <tr><td colspan="4" class="px-4 py-4 text-center text-gray-400">Brak logów. Wyślij pierwszy submit!</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>feather.replace();</script>
+  </body>
+</html>
