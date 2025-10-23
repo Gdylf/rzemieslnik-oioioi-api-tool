@@ -1,0 +1,186 @@
+[
+    {
+        "short_name": "dnt",
+        "full_name": "Dzielone na Trzy"
+    },
+    {
+        "short_name": "drw",
+        "full_name": "Dwa razy Większa"
+    },
+    {
+        "short_name": "ilb",
+        "full_name": "Benzyna"
+    },
+    {
+        "short_name": "ile",
+        "full_name": "Ile Liter?"
+    },
+    {
+        "short_name": "ilk",
+        "full_name": "Wycinanki"
+    },
+    {
+        "short_name": "kar",
+        "full_name": "Karty"
+    },
+    {
+        "short_name": "kzl",
+        "full_name": "K najwiekszych"
+    },
+    {
+        "short_name": "mop",
+        "full_name": "Mniejsza o Pięć"
+    },
+    {
+        "short_name": "pal",
+        "full_name": "Palindrom?"
+    },
+    {
+        "short_name": "res",
+        "full_name": "Restauracje"
+    },
+    {
+        "short_name": "bok",
+        "full_name": "Bok Kwadratu"
+    },
+    {
+        "short_name": "cok",
+        "full_name": "Czekolada"
+    },
+    {
+        "short_name": "dzi",
+        "full_name": "Dzielnik"
+    },
+    {
+        "short_name": "lpr",
+        "full_name": "Liczba prostokatow"
+    },
+    {
+        "short_name": "par",
+        "full_name": "Liczby parzystocyfrowe"
+    },
+    {
+        "short_name": "tel",
+        "full_name": "Teleportacja"
+    },
+    {
+        "short_name": "fil",
+        "full_name": "Filatelista Kacper"
+    },
+    {
+        "short_name": "kom",
+        "full_name": "Komunikacja"
+    },
+    {
+        "short_name": "oli",
+        "full_name": "Oblicz Odwrotność Liczby"
+    },
+    {
+        "short_name": "riz",
+        "full_name": "Rizz"
+    },
+    {
+        "short_name": "sil",
+        "full_name": "Silnia"
+    },
+    {
+        "short_name": "tru",
+        "full_name": "Truskawkowe żniwa"
+    },
+    {
+        "short_name": "kmp",
+        "full_name": "Kompas"
+    },
+    {
+        "short_name": "mpr",
+        "full_name": "MAKSYMALNY OBSZAR"
+    },
+    {
+        "short_name": "nau",
+        "full_name": "Nauka Liczenia"
+    },
+    {
+        "short_name": "plu",
+        "full_name": "N Plusów"
+    },
+    {
+        "short_name": "pzd",
+        "full_name": "5 zadan"
+    },
+    {
+        "short_name": "tro",
+        "full_name": "Trójkąty na przedziale"
+    },
+    {
+        "short_name": "dlp",
+        "full_name": "Wypisz literki alfabetu parami rosnąco"
+    },
+    {
+        "short_name": "dwj",
+        "full_name": "Dwójki"
+    },
+    {
+        "short_name": "hdr",
+        "full_name": "Hodowla ryb"
+    },
+    {
+        "short_name": "ods",
+        "full_name": "Odszyfruj"
+    },
+    {
+        "short_name": "szy",
+        "full_name": "Szyfry liniowe"
+    },
+    {
+        "short_name": "uuu",
+        "full_name": "Literka Uli"
+    },
+    {
+        "short_name": "hft",
+        "full_name": "Haft"
+    },
+    {
+        "short_name": "ils",
+        "full_name": "Iloczyn i Suma"
+    },
+    {
+        "short_name": "psd",
+        "full_name": "Podzielna przez 17?"
+    },
+    {
+        "short_name": "slo",
+        "full_name": "Slowo"
+    },
+    {
+        "short_name": "spd",
+        "full_name": "Kłopotliwy spadek"
+    },
+    {
+        "short_name": "wsp",
+        "full_name": "Wspólne układanie"
+    },
+    {
+        "short_name": "adk",
+        "full_name": "Buty"
+    },
+    {
+        "short_name": "cfr",
+        "full_name": "Cyfry Rzymskie"
+    },
+    {
+        "short_name": "czw",
+        "full_name": "Czworokąt"
+    },
+    {
+        "short_name": "mie",
+        "full_name": "Miejsce zerowe"
+    },
+    {
+        "short_name": "smx",
+        "full_name": "SUMX"
+    },
+    {
+        "short_name": "szy1",
+        "full_name": "Szyfr"
+    }
+]

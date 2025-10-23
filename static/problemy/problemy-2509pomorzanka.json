@@ -1,0 +1,194 @@
+[
+    {
+        "short_name": "ary",
+        "full_name": "Permutacja arytmetyczna"
+    },
+    {
+        "short_name": "bab",
+        "full_name": "Ekspresowe sortowanie"
+    },
+    {
+        "short_name": "bie",
+        "full_name": "Bieda"
+    },
+    {
+        "short_name": "kro",
+        "full_name": "Królowa Spacerów"
+    },
+    {
+        "short_name": "ksz",
+        "full_name": "Krzyzowka szescienna"
+    },
+    {
+        "short_name": "lub",
+        "full_name": "Alternatywa bitowa"
+    },
+    {
+        "short_name": "mas",
+        "full_name": "Masło"
+    },
+    {
+        "short_name": "psi",
+        "full_name": "Psikus"
+    },
+    {
+        "short_name": "pvz",
+        "full_name": "Ogród koło-kwiatów"
+    },
+    {
+        "short_name": "tka",
+        "full_name": "Talia kart"
+    },
+    {
+        "short_name": "wtc",
+        "full_name": "Wieże"
+    },
+    {
+        "short_name": "zad",
+        "full_name": "Ekscytujące zadanie"
+    },
+    {
+        "short_name": "aut",
+        "full_name": "Autobus"
+    },
+    {
+        "short_name": "dok",
+        "full_name": "Wieża skrzyń"
+    },
+    {
+        "short_name": "fil",
+        "full_name": "Sciezki"
+    },
+    {
+        "short_name": "god",
+        "full_name": "Cwany cygan"
+    },
+    {
+        "short_name": "gru",
+        "full_name": "Gruntowny przekret"
+    },
+    {
+        "short_name": "krz",
+        "full_name": "Lepkie rączki"
+    },
+    {
+        "short_name": "mac",
+        "full_name": "Oszukać maczugę"
+    },
+    {
+        "short_name": "nwd",
+        "full_name": "Karsin Factory of Cotton"
+    },
+    {
+        "short_name": "spz",
+        "full_name": "System przydziału zadań"
+    },
+    {
+        "short_name": "sza",
+        "full_name": "Szachownica"
+    },
+    {
+        "short_name": "tro",
+        "full_name": "Liczby trójkowe"
+    },
+    {
+        "short_name": "wpg",
+        "full_name": "Wędrówki po górach"
+    },
+    {
+        "short_name": "kek",
+        "full_name": "Ciekawa Gra"
+    },
+    {
+        "short_name": "klo",
+        "full_name": "Klocki"
+    },
+    {
+        "short_name": "ksz1",
+        "full_name": "Kieszonkowe"
+    },
+    {
+        "short_name": "lam1",
+        "full_name": "Lampy"
+    },
+    {
+        "short_name": "map",
+        "full_name": "Mapa gęstości"
+    },
+    {
+        "short_name": "pas",
+        "full_name": "Twój stary winiar"
+    },
+    {
+        "short_name": "spo",
+        "full_name": "Sponsor"
+    },
+    {
+        "short_name": "stl",
+        "full_name": "Stół"
+    },
+    {
+        "short_name": "tas",
+        "full_name": "Tasma"
+    },
+    {
+        "short_name": "tro1",
+        "full_name": "Trójkolorowe drzewa binarne"
+    },
+    {
+        "short_name": "wys",
+        "full_name": "Wyświetlacz"
+    },
+    {
+        "short_name": "zaw",
+        "full_name": "ZAWODY"
+    },
+    {
+        "short_name": "ast",
+        "full_name": "Astronom Janusz"
+    },
+    {
+        "short_name": "ims",
+        "full_name": "Impreza sylwestrowa"
+    },
+    {
+        "short_name": "jbk",
+        "full_name": "JABŁKA"
+    },
+    {
+        "short_name": "kfl",
+        "full_name": "Kafelki"
+    },
+    {
+        "short_name": "mks",
+        "full_name": "Maksymalna K-elementowa Suma"
+    },
+    {
+        "short_name": "plc",
+        "full_name": "Przekreslona liczba"
+    },
+    {
+        "short_name": "pro",
+        "full_name": "Minimalny Prostokat"
+    },
+    {
+        "short_name": "pro1",
+        "full_name": "Programy"
+    },
+    {
+        "short_name": "rna",
+        "full_name": "Rzymski na Arabski"
+    },
+    {
+        "short_name": "tar",
+        "full_name": "Serfowanie po Sieci"
+    },
+    {
+        "short_name": "uns",
+        "full_name": "Ulamki nieskracalne"
+    },
+    {
+        "short_name": "wyk",
+        "full_name": "Wykalaczki"
+    }
+]

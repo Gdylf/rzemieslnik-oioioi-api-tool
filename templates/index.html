@@ -163,9 +163,7 @@
             }
             input[type="checkbox"] {
                 cursor: pointer;
-                width: 18px;
-                height: 18px;
-                min-width: 18px;
+                display: none;
             }
             .status-ok {
                 color: #34d399;
@@ -405,243 +403,28 @@
                     </div>
                 </div>
 
-                <!-- Single Submit Section -->
-                <div
-                    class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6"
-                >
-                    <h2 class="text-xl font-semibold mb-4 text-violet-300">
-                        Pojedynczy submit
-                    </h2>
-
-                    <div class="mb-4">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Wybierz sposób wprowadzania zadania:</label
-                        >
-                        <div class="flex space-x-6">
-                            <label class="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="single-mode"
-                                    value="manual"
-                                    checked
-                                    onchange="toggleSingleMode()"
-                                    class="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span class="ml-2">Wpisz short name</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="single-mode"
-                                    value="dropdown"
-                                    onchange="toggleSingleMode()"
-                                    class="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span class="ml-2">Wybierz z listy</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div id="single-manual-input" class="mb-4">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Short name zadania:</label
-                        >
-                        <input
-                            type="text"
-                            id="single-problem-text"
-                            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            placeholder="np. wiel_szyfr"
-                        />
-                    </div>
-
-                    <div id="single-dropdown-input" class="mb-4 hidden">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Wybierz zadanie:</label
-                        >
-                        <div
-                            id="single-problems-dropdown"
-                            class="relative inline-block w-full text-left"
-                        >
-                            <div
-                                id="single-problems-dropdown-button"
-                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors"
-                                onclick="toggleDropdown('single-problems-dropdown', true)"
-                            >
-                                <span id="single-problems-label"
-                                    >Wybierz zadanie...</span
-                                >
-                                <i
-                                    data-feather="chevron-down"
-                                    class="text-gray-400"
-                                ></i>
-                            </div>
-
-                            <div
-                                id="single-problems-list"
-                                class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"
-                            >
-                                <div class="p-2 text-gray-400">
-                                    Załaduj problemy.json
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Kod źródłowy:</label
-                        >
-                        <textarea
-                            id="single-code"
-                            rows="10"
-                            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            placeholder="Wklej swój kod tutaj..."
-                        ></textarea>
-                    </div>
-
-                    <div class="mb-6">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Lub wybierz plik:</label
-                        >
-                        <input
-                            type="file"
-                            id="single-file"
-                            class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                        />
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-300 mb-1"
-                                >Liczba powtórzeń:</label
-                            >
-                            <input
-                                type="number"
-                                id="single-repeat"
-                                value="1"
-                                min="1"
-                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            />
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-300 mb-1"
-                                >Maks. wątki:</label
-                            >
-                            <input
-                                type="number"
-                                id="single-concurrency"
-                                value="5"
-                                min="1"
-                                max="20"
-                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            />
-                        </div>
-                    </div>
-
-                    <button
-                        onclick="singleSubmit()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors flex items-center justify-center w-full"
-                    >
-                        <i data-feather="send" class="mr-2 w-4"></i> Wyślij
-                        submit
-                    </button>
-                </div>
-
                 <!-- Multi-Submit Section -->
                 <div
                     class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6"
                 >
                     <h2 class="text-xl font-semibold mb-4 text-violet-300">
-                        Multi-Submit
+                        Submit
                     </h2>
 
-                    <div class="mb-4">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Wybierz sposób wprowadzania zadań:</label
-                        >
-                        <div class="flex space-x-6">
-                            <label class="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="multi-mode"
-                                    value="manual"
-                                    checked
-                                    onchange="toggleMultiMode()"
-                                    class="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span class="ml-2">Ręcznie (po przecinku)</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="multi-mode"
-                                    value="dropdown"
-                                    onchange="toggleMultiMode()"
-                                    class="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span class="ml-2">Wybierz z listy</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div id="multi-manual-input" class="mb-4">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Short names zadań (po przecinku):</label
-                        >
-                        <input
-                            type="text"
-                            id="multi-problems-text"
-                            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            placeholder="wiel_szyfr,wiel_trasy,wiel_wieloryb"
-                        />
-                    </div>
-
-                    <div id="multi-dropdown-input" class="mb-4 hidden">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Wybierz zadania:</label
-                        >
-                        <div
-                            id="multi-problems-dropdown"
-                            class="relative inline-block w-full text-left"
-                        >
-                            <div
-                                id="multi-problems-dropdown-button"
-                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors"
-                                onclick="toggleDropdown('multi-problems-dropdown')"
-                            >
-                                <span id="multi-problems-label"
-                                    >Wybierz zadania...</span
-                                >
-                                <i
-                                    data-feather="chevron-down"
-                                    class="text-gray-400"
-                                ></i>
-                            </div>
-
-                            <div
-                                id="multi-problems-list"
-                                class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"
-                            >
-                                <div class="p-2 border-b border-gray-700">
-                                    <button
-                                        class="select-all-btn w-full"
-                                        onclick="selectAllProblems('multi'); event.stopPropagation();"
-                                    >
-                                        Zaznacz wszystkie
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="mb-4 relative">
+                      <label class="block text-sm font-medium text-gray-300 mb-1">
+                        Zadania (pisz lub wybierz):
+                      </label>
+                      <input
+                        type="text"
+                        id="multi-problems-text"
+                        class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        placeholder="np. wiel_szyfr, wiel_trasy"
+                      />
+                      <div
+                        id="multi-problems-list"
+                        class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"
+                      ></div>
                     </div>
 
                     <div class="mb-4">
@@ -704,7 +487,7 @@
                         class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition-colors flex items-center justify-center w-full"
                     >
                         <i data-feather="send" class="mr-2 w-4"></i> Wyślij
-                        Multi-Submit
+                        Submit
                     </button>
                 </div>
 
@@ -713,90 +496,25 @@
                     class="bg-gray-700/50 p-6 rounded-lg border-l-4 border-secondary mb-6"
                 >
                     <h2 class="text-xl font-semibold mb-4 text-violet-300">
-                        Spam Submit
+                        Spam
                     </h2>
 
-                    <div class="mb-4">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Wybierz sposób wprowadzania zadań:</label
-                        >
-                        <div class="flex space-x-6">
-                            <label class="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="multi-sybau-mode"
-                                    value="manual"
-                                    checked
-                                    onchange="toggleMultiSybauMode()"
-                                    class="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span class="ml-2">Ręcznie (po przecinku)</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input
-                                    type="radio"
-                                    name="multi-sybau-mode"
-                                    value="dropdown"
-                                    onchange="toggleMultiSybauMode()"
-                                    class="text-blue-600 focus:ring-blue-500"
-                                />
-                                <span class="ml-2">Wybierz z listy</span>
-                            </label>
-                        </div>
+                    <div class="mb-4 relative">
+                      <label class="block text-sm font-medium text-gray-300 mb-1">
+                        Zadania (pisz lub wybierz):
+                      </label>
+                      <input
+                        type="text"
+                        id="multi-sybau-problems-text"
+                        class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        placeholder="np. dnt, szy1"
+                      />
+                      <div
+                        id="multi-sybau-problems-list"
+                        class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"
+                      ></div>
                     </div>
 
-                    <div id="multi-sybau-manual-input" class="mb-4">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Short names zadań (po przecinku):</label
-                        >
-                        <input
-                            type="text"
-                            id="multi-sybau-problems-text"
-                            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                            placeholder="dnt,drw,tro"
-                        />
-                    </div>
-
-                    <div id="multi-sybau-dropdown-input" class="mb-4 hidden">
-                        <label
-                            class="block text-sm font-medium text-gray-300 mb-1"
-                            >Wybierz zadania:</label
-                        >
-                        <div
-                            id="multi-sybau-problems-dropdown"
-                            class="relative inline-block w-full text-left"
-                        >
-                            <div
-                                id="multi-sybau-problems-dropdown-button"
-                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md flex justify-between items-center cursor-pointer hover:border-violet-400 transition-colors"
-                                onclick="toggleDropdown('multi-sybau-problems-dropdown')"
-                            >
-                                <span id="multi-sybau-problems-label"
-                                    >Wybierz zadania...</span
-                                >
-                                <i
-                                    data-feather="chevron-down"
-                                    class="text-gray-400"
-                                ></i>
-                            </div>
-
-                            <div
-                                id="multi-sybau-problems-list"
-                                class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto hidden"
-                            >
-                                <div class="p-2 border-b border-gray-700">
-                                    <button
-                                        class="select-all-btn w-full"
-                                        onclick="selectAllProblems('sybau'); event.stopPropagation();"
-                                    >
-                                        Zaznacz wszystkie
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>

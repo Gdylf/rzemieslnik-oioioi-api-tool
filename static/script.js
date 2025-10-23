@@ -1,934 +1,625 @@
-// script.js
-// Relative API base -> empty string so endpoints become e.g. /check_token
+// static/script.js — unified version (manual typing + filtering + custom items + backspace remove)
+// Fixed: filter uses last token for autocomplete so typing the 2nd/3rd item works
+
 const API_URL = window.location.origin;
 let problemsData = [];
-let tokensData = {};
 
-// ================== Wybór kontestu (custom dropdown) ==================
+// ---------- utilities ----------
+function id(sel) { return document.getElementById(sel); }
+function logv(...args) { console.log("[rzm]", ...args); }
+
+// ---------- contests ----------
 let contestsCache = [];
-
-function getSelectedContestId() {
-  const input = document.getElementById("contest-input");
-  return input?.value?.trim() || "";
-}
-
 async function loadContests() {
-  const list = document.getElementById("contest-list");
-  const input = document.getElementById("contest-input");
   try {
-    const response = await fetch("static/contesty.json");
-    const contests = await response.json();
-    contestsCache = contests.map((c) =>
-      typeof c === "string" ? { id: c, name: c } : c,
-    );
+    const r = await fetch("static/contesty.json");
+    const j = await r.json();
+    contestsCache = j.map(c => typeof c === "string" ? { id: c, name: c } : (c.id ? c : { id: c, name: c }));
     renderContestList(contestsCache);
   } catch (e) {
-    list.innerHTML = `<div class="p-2 text-red-400">Błąd ładowania kontestów</div>`;
+    console.error("loadContests:", e);
+    id("contest-list").innerHTML = `<div class="p-2 text-red-400">Błąd ładowania kontestów</div>`;
   }
 }
 
 function renderContestList(items) {
-  const list = document.getElementById("contest-list");
+  const list = id("contest-list");
   list.innerHTML = "";
-  items.forEach((c) => {
+  items.forEach(c => {
     const div = document.createElement("div");
-    div.className =
-      "px-4 py-2 text-gray-200 hover:bg-violet-600 hover:text-white cursor-pointer";
-    div.textContent = c.name;
-    div.onclick = () => {
-      document.getElementById("contest-input").value = c.id;
+    div.className = "px-4 py-2 text-gray-200 hover:bg-violet-600 hover:text-white cursor-pointer";
+    div.textContent = c.name || c.id;
+    div.onclick = async () => {
+      id("contest-input").value = c.id || c.name;
       toggleContestList(false);
+      await loadProblemsForSelectedContest();
     };
     list.appendChild(div);
   });
 }
 
-function toggleContestList(show) {
-  const list = document.getElementById("contest-list");
-  list.classList.toggle("hidden", !show);
-}
-
 function filterContests() {
-  const query = document.getElementById("contest-input").value.toLowerCase();
-  const filtered = contestsCache.filter(
-    (c) =>
-      c.name.toLowerCase().includes(query) ||
-      c.id.toLowerCase().includes(query),
+  const q = (id("contest-input").value || "").toLowerCase();
+  const filtered = contestsCache.filter(c =>
+    (c.name || "").toLowerCase().includes(q) || (c.id || "").toLowerCase().includes(q)
   );
   renderContestList(filtered);
   toggleContestList(true);
 }
-
-document.addEventListener("click", (e) => {
-  if (
-    !e.target.closest("#contest-list") &&
-    !e.target.closest("#contest-input")
-  ) {
-    toggleContestList(false);
-  }
+function toggleContestList(show) {
+  id("contest-list").classList.toggle("hidden", !show);
+}
+document.addEventListener("click", e => {
+  if (!e.target.closest("#contest-list") && !e.target.closest("#contest-input")) toggleContestList(false);
 });
 
-document.addEventListener("DOMContentLoaded", loadContests);
-
-// ================== Tokeny ==================
+// ---------- tokens ----------
 async function loadTokens() {
-  const tbody = document.getElementById("token-db-body");
   try {
-    const response = await fetch("/static/tokeny.json");
-    if (!response.ok) {
-      throw new Error(`Błąd HTTP: ${response.status}`);
-    }
-    const rawTokens = await response.json();
-
+    const r = await fetch("/static/tokeny.json");
+    const tokens = await r.json();
+    const tbody = id("token-db-body");
     tbody.innerHTML = "";
-    if (!rawTokens || rawTokens.length === 0) {
+    if (!tokens || tokens.length === 0) {
       tbody.innerHTML = `<tr><td colspan="4" class="logs-empty">Brak zapisanych tokenów.</td></tr>`;
       return;
     }
-
-    rawTokens.forEach((entry) => {
-      // entry wygląda tak: { "Tomasz Milkowski": "token" }
-      const contestName = Object.keys(entry)[0];
-      const tokenValue = entry[contestName];
-
-      const newRow = tbody.insertRow(-1);
-      newRow.innerHTML = `
-                <td class="token-contest-name px-4 py-2">${contestName}</td>
-                <td class="token-value px-4 py-2" title="${tokenValue}">${tokenValue.substring(0, 8)}...</td>
-                <td class="token-status px-4 py-2" data-token="${tokenValue}">
-                    <span class="status-text">-</span>
-                </td>
-                <td class="token-actions px-4 py-2">
-                    <button class="btn-mini btn-copy mr-2" onclick="copyToken('${tokenValue}')">Kopiuj</button>
-                    <button class="btn-mini btn-use" onclick="useToken('${tokenValue}')">Użyj</button>
-                </td>
-            `;
+    tokens.forEach(entry => {
+      const name = Object.keys(entry)[0];
+      const token = entry[name];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="px-4 py-2">${name}</td>
+        <td class="px-4 py-2" title="${token}">${token.substring(0, 8)}...</td>
+        <td class="px-4 py-2" data-token="${token}"><span class="status-text">-</span></td>
+        <td class="px-4 py-2">
+          <button class="btn-mini bg-sky-500/50" onclick="copyToken('${token}')">Kopiuj</button>
+          <button class="btn-mini bg-sky-500/50" onclick="useToken('${token}')">Użyj</button>
+        </td>`;
+      tbody.appendChild(tr);
     });
-  } catch (error) {
-    console.error("Błąd ładowania bazy tokenów:", error);
-    tbody.innerHTML = `<tr><td colspan="4" class="logs-empty status-fail">Nie udało się załadować bazy tokenów.</td></tr>`;
+  } catch {
+    id("token-db-body").innerHTML =
+      `<tr><td colspan="4" class="logs-empty status-fail">Nie udało się załadować bazy tokenów.</td></tr>`;
   }
 }
 
-async function checkAllTokens() {
-  const tbody = document.getElementById("token-db-body");
-  const statusCells = tbody.querySelectorAll(".token-status");
+// ---------- dropzone ----------
+function setupDropZone() {
+  const drop = id("problemy-drop");
+  const file = id("problemy-file");
+  if (!drop || !file) return;
+  ["dragenter", "dragover", "dragleave", "drop"].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); })
+  );
+  ["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, () => drop.classList.add("drag-over")));
+  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove("drag-over")));
+  drop.addEventListener("drop", e => readFiles(e.dataTransfer.files));
+  drop.addEventListener("click", () => file.click());
+  file.addEventListener("change", e => readFiles(e.target.files));
 
-  if (statusCells.length === 0) {
-    alert("Brak tokenów do sprawdzenia.");
-    return;
-  }
-
-  // Ustaw "Sprawdzanie..." dla wszystkich
-  statusCells.forEach((cell) => {
-    const statusText = cell.querySelector(".status-text");
-    statusText.innerHTML = '<i data-feather="loader" class="animate-spin"></i>';
-    statusText.className = "status-text token-status-checking";
-    cell.title = "Sprawdzanie...";
-  });
-
-  // Odśwież ikony Feather po zmianie HTML
-  feather.replace();
-
-  // Sprawdź każdy token
-  const checkPromises = Array.from(statusCells).map(async (cell) => {
-    const token = cell.dataset.token;
-    const statusText = cell.querySelector(".status-text");
-
-    try {
-      const response = await fetch(`${API_URL}/check_token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-      const data = await response.json();
-
-      if (data.valid) {
-        statusText.innerHTML =
-          '<i data-feather="check-circle" class="text-green-500"></i>';
-        statusText.className = "status-text token-status-valid";
-        cell.title = data.username || "Token poprawny";
-      } else {
-        statusText.innerHTML =
-          '<i data-feather="x-circle" class="text-red-500"></i>';
-        statusText.className = "status-text token-status-invalid";
-        cell.title = data.error || "Token niepoprawny";
+  function readFiles(files) {
+    if (!files || files.length === 0) return;
+    const f = files[0];
+    if (!f.name.endsWith(".json")) { id("problemy-status").textContent = "Wymagany plik .json"; return; }
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        problemsData = parsed;
+        id("problemy-status").textContent = `Załadowano ${problemsData.length} problemów z pliku`;
+        rebuildProblemDropdowns(problemsData);
+      } catch {
+        id("problemy-status").textContent = "Błąd: nieprawidłowy JSON";
       }
-    } catch (error) {
-      statusText.innerHTML =
-        '<i data-feather="alert-circle" class="text-red-500"></i>';
-      statusText.className = "status-text token-status-invalid";
-      cell.title = `Błąd: ${error.message}`;
-    }
+    };
+    r.readAsText(f);
+  }
+}
 
-    // Zastąp ikony Feather w tym cyklu
+// ---------- load problems ----------
+async function loadProblemsForSelectedContest() {
+  const contest = (id("contest-input")?.value || "").trim();
+  if (!contest) { id("problemy-status").textContent = "Najpierw wybierz kontest."; return; }
+  try {
+    const r = await fetch(`static/problemy/problemy-${contest}.json`);
+    if (!r.ok) throw new Error("not found");
+    const j = await r.json();
+    problemsData = j;
+    id("problemy-status").textContent = `Załadowano ${j.length} zadań dla ${contest}`;
+    rebuildProblemDropdowns(problemsData);
+  } catch {
+    id("problemy-status").textContent = `Nie znaleziono pliku dla ${contest}`;
+  }
+}
+
+// ---------- dropdowns ----------
+function rebuildProblemDropdowns(data) {
+  if (!Array.isArray(data)) data = [];
+  const pairs = [
+    { kind: "multi", inputId: "multi-problems-text", listId: "multi-problems-list" },
+    { kind: "sybau", inputId: "multi-sybau-problems-text", listId: "multi-sybau-problems-list" }
+  ];
+
+  pairs.forEach(({ kind, inputId, listId }) => {
+    const input = id(inputId);
+    const list = id(listId);
+    if (!input || !list) return;
+
+    // header with select/clear
+    list.innerHTML = `
+      <div class="p-2 border-b border-gray-700 sticky top-0 bg-gray-800">
+        <div class="flex gap-2 items-center">
+          <button class="select-all-btn" onclick="selectAllVisible('${kind}');event.stopPropagation();">Zaznacz wszystkie</button>
+          <button class="select-all-btn" style="background:#374151" onclick="clearSelection('${kind}');event.stopPropagation();">✕ Wyczyść</button>
+        </div>
+      </div>
+    `;
+
+    const container = document.createElement("div");
+    container.className = "p-1";
+
+    // populate list rows
+    data.forEach(item => {
+      const short = (item.short_name || item.short || item.id || "").toString();
+      const full  = (item.full_name  || item.full  || "").toString();
+      const row   = document.createElement("div");
+      row.className = "checkbox-item hover:bg-gray-700 rounded-md";
+      row.dataset.short = short.toLowerCase();
+      row.dataset.full  = full.toLowerCase();
+
+      const cb = document.createElement("input");
+      cb.type  = "checkbox";
+      cb.value = short;
+      cb.style.marginRight = "0.5rem";
+
+      const lbl = document.createElement("span");
+      lbl.textContent = `${short} (${full})`;
+
+      row.append(cb, lbl);
+
+      const toggle = () => {
+        row.classList.toggle("selected", cb.checked);
+        updateSelectedToInput(kind);
+      };
+      row.addEventListener("click", e => { if (e.target !== cb) cb.checked = !cb.checked; toggle(); });
+      cb.addEventListener("change", toggle);
+      container.appendChild(row);
+    });
+
+    list.appendChild(container);
+
+    // --- typing & filter: use last token for q so typing 2nd/3rd item works
+    input.addEventListener("input", () => {
+      const raw = input.value;
+      // split tokens and use last token as query
+      const tokens = raw.split(",").map(s => s.trim());
+      const last = tokens.length ? tokens[tokens.length - 1].toLowerCase() : "";
+      const q = last;
+    
+      container.querySelectorAll(".checkbox-item").forEach(r => {
+        const vis = (!q) || r.dataset.short.includes(q) || r.dataset.full.includes(q);
+        r.style.display = vis ? "" : "none";
+      });
+    
+      if (raw.endsWith(", ")) {
+        addCustomTokensFromInput(kind);
+        container.querySelectorAll(".checkbox-item").forEach(r => r.style.display = "");
+      }
+    
+      list.classList.remove("hidden");
+    });
+
+    // --- keyboard handling (Enter commits, Backspace removes last tag when input empty)
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        syncTypedProblems(kind);
+        list.classList.add("hidden");
+      } else if (e.key === "Backspace" && input.value.trim() === "") {
+        const sel = container.querySelectorAll(".checkbox-item.selected input[type='checkbox']");
+        if (sel.length) {
+          const last = sel[sel.length - 1];
+          last.checked = false;
+          last.closest(".checkbox-item").classList.remove("selected");
+          updateSelectedToInput(kind);
+          e.preventDefault();
+        }
+      }
+    });
+
+    input.addEventListener("blur", () => {
+      // commit typed tokens on blur
+      setTimeout(() => syncTypedProblems(kind), 120); // small delay so click on list registers
+    });
+    input.addEventListener("focus", () => list.classList.remove("hidden"));
+
+    // close dropdown if clicked outside
+    document.addEventListener("click", e => {
+      if (!e.target.closest(`#${listId}`) && e.target !== input) list.classList.add("hidden");
+    });
+
     feather.replace();
   });
 
-  await Promise.all(checkPromises);
+  updateSelectedToInput("multi");
+  updateSelectedToInput("sybau");
 }
 
-// ================== Problemy ==================
-function setupDropZone() {
-  const dropZone = document.getElementById("problemy-drop");
-  const fileInput = document.getElementById("problemy-file");
+// ---------- add custom ----------
+function addCustomTokensFromInput(kind) {
+  const inputId = kind === "multi" ? "multi-problems-text" : "multi-sybau-problems-text";
+  const listId  = kind === "multi" ? "multi-problems-list"  : "multi-sybau-problems-list";
+  const input = id(inputId), list = id(listId);
+  if (!input || !list) return;
+  const container = list.querySelector(".p-1");
+  if (!container) return;
 
-  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-    dropZone.addEventListener(eventName, preventDefaults, false);
-  });
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
+  // tokens typed (split on comma), exclude empty/trailing token
+  const rawParts = input.value.split(",").map(s => s.trim()).filter(Boolean);
+  if (rawParts.length === 0) return;
 
-  ["dragenter", "dragover"].forEach((eventName) => {
-    dropZone.addEventListener(
-      eventName,
-      () => dropZone.classList.add("drag-over"),
-      false,
-    );
-  });
-  ["dragleave", "drop"].forEach((eventName) => {
-    dropZone.addEventListener(
-      eventName,
-      () => dropZone.classList.remove("drag-over"),
-      false,
-    );
-  });
+  rawParts.forEach(token => {
+    const shortLower = token.toLowerCase();
+    // find existing row by data-short
+    const existing = Array.from(container.querySelectorAll(".checkbox-item")).find(r => r.dataset.short === shortLower);
+    if (!existing) {
+      // create custom row
+      const row = document.createElement("div");
+      row.className = "checkbox-item hover:bg-gray-700 rounded-md custom-item selected";
+      row.dataset.short = shortLower;
+      row.dataset.full = "custom";
 
-  dropZone.addEventListener("drop", handleDrop, false);
-  dropZone.addEventListener("click", () => fileInput.click(), false);
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = token;
+      cb.checked = true;
+      cb.style.marginRight = "0.5rem";
 
-  fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+      const lbl = document.createElement("span");
+      lbl.textContent = `${token} (custom)`;
 
-  function handleDrop(e) {
-    const dt = e.dataTransfer;
-    handleFiles(dt.files);
-  }
+      row.appendChild(cb);
+      row.appendChild(lbl);
 
-  function handleFiles(files) {
-    if (files.length === 0) return;
-    const file = files[0];
-    if (file.name.endsWith(".json")) {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        try {
-          const data = JSON.parse(event.target.result);
-          loadProblemsData(data);
-          dropZone.classList.add("loaded");
-        } catch {
-          document.getElementById("problemy-status").textContent =
-            "Błąd: Niepoprawny format JSON.";
-          dropZone.classList.remove("loaded");
-        }
-      };
-      reader.readAsText(file);
+      row.addEventListener("click", e => {
+        if (e.target !== cb) cb.checked = !cb.checked;
+        row.classList.toggle("selected", cb.checked);
+        updateSelectedToInput(kind);
+      });
+
+      cb.addEventListener("change", () => {
+        row.classList.toggle("selected", cb.checked);
+        updateSelectedToInput(kind);
+      });
+
+      container.appendChild(row);
     } else {
-      document.getElementById("problemy-status").textContent =
-        "Błąd: Wymagany plik problemy.json.";
-      dropZone.classList.remove("loaded");
+      // ensure it's checked
+      const cb = existing.querySelector("input[type='checkbox']");
+      if (cb) { cb.checked = true; existing.classList.add("selected"); }
     }
-  }
-}
-
-// ================== Generowanie dropdownów ==================
-async function loadProblemsData(data) {
-  problemsData = data;
-  const listSingle = document.getElementById("single-problems-list");
-  const listMulti = document.getElementById("multi-problems-list");
-  const listSybau = document.getElementById("multi-sybau-problems-list");
-
-  // Zachowaj guzik "Zaznacz wszystkie" dla multi i sybau
-  const selectAllBtnMulti =
-    '<div class="p-2 border-b border-gray-700"><button class="select-all-btn w-full" onclick="selectAllProblems(\'multi\'); event.stopPropagation();">Zaznacz wszystkie</button></div>';
-  const selectAllBtnSybau =
-    '<div class="p-2 border-b border-gray-700"><button class="select-all-btn w-full" onclick="selectAllProblems(\'sybau\'); event.stopPropagation();">Zaznacz wszystkie</button></div>';
-
-  listSingle.innerHTML = "";
-  listMulti.innerHTML = selectAllBtnMulti;
-  listSybau.innerHTML = selectAllBtnSybau;
-
-  data.forEach((problem) => {
-    // SINGLE
-    const itemSingle = document.createElement("div");
-    itemSingle.classList.add("checkbox-item");
-    const inputSingle = document.createElement("input");
-    inputSingle.type = "radio";
-    inputSingle.name = "single_problem_radio";
-    inputSingle.value = problem.short_name;
-    inputSingle.id = "p-" + problem.short_name;
-    const labelSingle = document.createElement("label");
-    labelSingle.setAttribute("for", inputSingle.id);
-    labelSingle.textContent = `${problem.short_name} (${problem.full_name})`;
-
-    inputSingle.addEventListener("change", () => {
-      listSingle
-        .querySelectorAll(".checkbox-item")
-        .forEach((el) => el.classList.remove("selected"));
-      if (inputSingle.checked) itemSingle.classList.add("selected");
-      updateSingleProblemLabel();
-      document.getElementById("single-problems-list").classList.add("hidden");
-    });
-
-    // Kliknięcie w całą linię
-    itemSingle.addEventListener("click", (e) => {
-      if (e.target !== inputSingle) {
-        inputSingle.checked = true;
-        inputSingle.dispatchEvent(new Event("change"));
-      }
-    });
-
-    itemSingle.appendChild(inputSingle);
-    itemSingle.appendChild(labelSingle);
-    listSingle.appendChild(itemSingle);
-
-    // MULTI
-    const itemMulti = document.createElement("div");
-    itemMulti.classList.add("checkbox-item");
-    const inputMulti = document.createElement("input");
-    inputMulti.type = "checkbox";
-    inputMulti.value = problem.short_name;
-    inputMulti.id = "m-" + problem.short_name;
-    const labelMulti = document.createElement("label");
-    labelMulti.setAttribute("for", inputMulti.id);
-    labelMulti.textContent = `${problem.short_name} (${problem.full_name})`;
-
-    inputMulti.addEventListener("change", () => {
-      if (inputMulti.checked) itemMulti.classList.add("selected");
-      else itemMulti.classList.remove("selected");
-      updateMultiLabel("multi");
-    });
-
-    // Kliknięcie w całą linię
-    itemMulti.addEventListener("click", (e) => {
-      // Jeśli kliknięto w input lub label, nie rób nic (domyślna akcja zadziała)
-      if (e.target === inputMulti || e.target === labelMulti) {
-        return;
-      }
-      // W przeciwnym razie toggle checkbox
-      inputMulti.checked = !inputMulti.checked;
-      inputMulti.dispatchEvent(new Event("change"));
-    });
-
-    itemMulti.appendChild(inputMulti);
-    itemMulti.appendChild(labelMulti);
-    listMulti.appendChild(itemMulti);
-
-    // SYBAU
-    const itemSybau = document.createElement("div");
-    itemSybau.classList.add("checkbox-item");
-    const inputSybau = document.createElement("input");
-    inputSybau.type = "checkbox";
-    inputSybau.value = problem.short_name;
-    inputSybau.id = "s-" + problem.short_name;
-    const labelSybau = document.createElement("label");
-    labelSybau.setAttribute("for", inputSybau.id);
-    labelSybau.textContent = `${problem.short_name} (${problem.full_name})`;
-
-    inputSybau.addEventListener("change", () => {
-      if (inputSybau.checked) itemSybau.classList.add("selected");
-      else itemSybau.classList.remove("selected");
-      updateMultiLabel("sybau");
-    });
-
-    // Kliknięcie w całą linię
-    itemSybau.addEventListener("click", (e) => {
-      // Jeśli kliknięto w input lub label, nie rób nic (domyślna akcja zadziała)
-      if (e.target === inputSybau || e.target === labelSybau) {
-        return;
-      }
-      // W przeciwnym razie toggle checkbox
-      inputSybau.checked = !inputSybau.checked;
-      inputSybau.dispatchEvent(new Event("change"));
-    });
-
-    itemSybau.appendChild(inputSybau);
-    itemSybau.appendChild(labelSybau);
-    listSybau.appendChild(itemSybau);
   });
 
-  document.getElementById("problemy-status").textContent =
-    `Załadowano ${data.length} zadań.`;
-  updateMultiLabel("multi");
-  updateMultiLabel("sybau");
-  updateSingleProblemLabel();
+  // after adding/checking, update input value to the selected list + trailing comma+space so user can continue typing
+  updateSelectedToInput(kind);
+  const checks = Array.from(document.querySelectorAll(`#${listId} input:checked`)).map(cb => cb.value);
+  input.value = checks.join(", ") + (checks.length ? ", " : "");
 }
 
-// ================== Tryby inputów ==================
-function toggleSingleMode() {
-  const isDropdown =
-    document.querySelector('input[name="single-mode"]:checked').value ===
-    "dropdown";
-  document.getElementById("single-manual-input").style.display = isDropdown
-    ? "none"
-    : "block";
-  document.getElementById("single-dropdown-input").style.display = isDropdown
-    ? "block"
-    : "none";
-  if (isDropdown) updateSingleProblemLabel();
+// ---------- sync typed ----------
+function syncTypedProblems(kind) {
+  const listId  = kind === "multi" ? "multi-problems-list"  : "multi-sybau-problems-list";
+  const list    = id(listId);
+  const inputId = kind === "multi" ? "multi-problems-text" : "multi-sybau-problems-text";
+  const input   = id(inputId);
+  if (!list || !input) return;
+  const container = list.querySelector(".p-1");
+  if (!container) return;
+
+  const parts = input.value.split(",").map(p => p.trim()).filter(Boolean);
+  const existingShorts = Array.from(container.querySelectorAll(".checkbox-item")).map(r => r.dataset.short);
+
+  // Add any custom entries not already in list
+  parts.forEach(p => {
+    const short = p.toLowerCase();
+    if (!existingShorts.includes(short)) {
+      const row = document.createElement("div");
+      row.className = "checkbox-item hover:bg-gray-700 rounded-md custom-item selected";
+      row.dataset.short = short;
+      row.dataset.full = "custom";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = p;
+      cb.checked = true;
+      cb.style.marginRight = "0.5rem";
+
+      const lbl = document.createElement("span");
+      lbl.textContent = `${p} (custom)`;
+
+      row.appendChild(cb);
+      row.appendChild(lbl);
+
+      row.addEventListener("click", e => {
+        if (e.target !== cb) cb.checked = !cb.checked;
+        row.classList.toggle("selected", cb.checked);
+        updateSelectedToInput(kind);
+      });
+      cb.addEventListener("change", () => {
+        row.classList.toggle("selected", cb.checked);
+        updateSelectedToInput(kind);
+      });
+
+      container.appendChild(row);
+    }
+  });
+
+  // Update checked states based on input tokens
+  container.querySelectorAll(".checkbox-item").forEach(r => {
+    const cb = r.querySelector("input[type='checkbox']");
+    const short = r.dataset.short;
+    const shouldCheck = parts.includes(short);
+    if (cb) {
+      cb.checked = shouldCheck;
+      r.classList.toggle("selected", shouldCheck);
+    }
+  });
+
+  // normalize input to checked list (no trailing comma after blur)
+  const checks = Array.from(container.querySelectorAll("input[type='checkbox']:checked")).map(cb => cb.value);
+  input.value = checks.join(", ");
 }
 
-function toggleMultiMode() {
-  const isDropdown =
-    document.querySelector('input[name="multi-mode"]:checked').value ===
-    "dropdown";
-  document.getElementById("multi-manual-input").style.display = isDropdown
-    ? "none"
-    : "block";
-  document.getElementById("multi-dropdown-input").style.display = isDropdown
-    ? "block"
-    : "none";
-}
-
-function toggleMultiSybauMode() {
-  const isDropdown =
-    document.querySelector('input[name="multi-sybau-mode"]:checked').value ===
-    "dropdown";
-  document.getElementById("multi-sybau-manual-input").style.display = isDropdown
-    ? "none"
-    : "block";
-  document.getElementById("multi-sybau-dropdown-input").style.display =
-    isDropdown ? "block" : "none";
-}
-
-// ================== Dropdown UI ==================
-function toggleDropdown(dropdownId, isSingleSelection = false) {
-  const dropdown = document.getElementById(dropdownId);
-  if (!dropdown) return;
-
-  // for single-problems-dropdown, ensure problems loaded
-  if (
-    dropdownId === "single-problems-dropdown" &&
-    problemsData.length === 0 &&
-    !dropdown.classList.contains("active")
-  ) {
-    alert("Najpierw załaduj plik problemy.json!");
-    return;
-  }
-
-  // toggle active class on the dropdown container
-  const list =
-    dropdown.querySelector('div[id$="-list"]') ||
-    dropdown.querySelector("#" + dropdownId.replace("-dropdown", "-list"));
-  // toggle visibility of the list element:
-  if (list) {
-    const hidden = list.classList.contains("hidden");
-    if (hidden) list.classList.remove("hidden");
-    else list.classList.add("hidden");
-  } else {
-    dropdown.classList.toggle("active");
-  }
-}
-
-function updateSingleProblemLabel() {
-  const label = document.getElementById("single-problems-label");
-  const checked = document.querySelector(
-    'input[name="single_problem_radio"]:checked',
-  );
-  if (checked) {
-    label.textContent = checked.nextElementSibling.textContent.trim();
-  } else {
-    label.textContent =
-      problemsData.length === 0
-        ? "Załaduj problemy.json"
-        : "Wybierz zadanie...";
-  }
-}
-
-function updateMultiLabel(type) {
-  const prefix = type === "multi" ? "multi" : "multi-sybau";
-  const list = document.getElementById(`${prefix}-problems-list`);
-  const label = document.getElementById(`${prefix}-problems-label`);
-  if (!list || !label) return;
-  const checkedItems = list.querySelectorAll('input[type="checkbox"]:checked');
-  const count = checkedItems.length;
-
-  if (count === 0) {
-    label.textContent =
-      problemsData.length === 0
-        ? "Załaduj problemy.json"
-        : "Wybierz zadania...";
-  } else if (count === 1) {
-    label.textContent = checkedItems[0].value;
-  } else {
-    label.textContent = `Wybrano ${count} zadań`;
-  }
-}
-
-// ================== Funkcja zaznaczania wszystkich ==================
-function selectAllProblems(type) {
-  const prefix = type === "multi" ? "multi" : "multi-sybau";
-  const list = document.getElementById(`${prefix}-problems-list`);
+// ---------- helpers ----------
+function selectAllVisible(kind) {
+  const listId = kind === "multi" ? "multi-problems-list" : "multi-sybau-problems-list";
+  const list = id(listId);
   if (!list) return;
-
-  const checkboxes = list.querySelectorAll('input[type="checkbox"]');
-  const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
-
-  checkboxes.forEach((cb) => {
-    cb.checked = !allChecked;
-    const item = cb.closest(".checkbox-item");
-    if (item) {
-      if (cb.checked) item.classList.add("selected");
-      else item.classList.remove("selected");
+  list.querySelectorAll(".checkbox-item").forEach(r => {
+    if (r.style.display !== "none") {
+      const cb = r.querySelector("input");
+      cb.checked = true;
+      r.classList.add("selected");
     }
   });
-
-  updateMultiLabel(type);
+  updateSelectedToInput(kind);
 }
 
-// ================== Helpers ==================
+function clearSelection(kind) {
+  const listId = kind === "multi" ? "multi-problems-list" : "multi-sybau-problems-list";
+  const list = id(listId);
+  if (!list) return;
+  list.querySelectorAll(".checkbox-item").forEach(r => {
+    const cb = r.querySelector("input");
+    if (cb) cb.checked = false;
+    r.classList.remove("selected");
+  });
+  updateSelectedToInput(kind);
+}
+
+function updateSelectedToInput(kind) {
+  const listId = kind === "multi" ? "multi-problems-list" : "multi-sybau-problems-list";
+  const inputId = kind === "multi" ? "multi-problems-text" : "multi-sybau-problems-text";
+  const checks = Array.from(document.querySelectorAll(`#${listId} input:checked`)).map(cb => cb.value);
+  const input = id(inputId);
+  if (input) input.value = checks.join(", ");
+}
+
+// ---------- submissions ----------
 async function getCode(codeId, fileId) {
-  const code = document.getElementById(codeId).value;
-  const fileInput = document.getElementById(fileId);
-  const file = fileInput ? fileInput.files[0] : null;
+  const code = id(codeId)?.value || "";
+  const fileInput = id(fileId);
+  const file = fileInput?.files?.[0];
   if (code) return code;
   if (file) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => reject(new Error("Błąd odczytu pliku"));
-      reader.readAsText(file);
+      const r = new FileReader();
+      r.onload = e => resolve(e.target.result);
+      r.onerror = () => reject(new Error("Błąd odczytu pliku"));
+      r.readAsText(file);
     });
   }
   return null;
 }
 
-function getProblemsFromDropdown(type) {
-  const prefix =
-    type === "multi" ? "multi" : type === "sybau" ? "multi-sybau" : "single";
-  const list = document.getElementById(`${prefix}-problems-list`);
-  if (!list) return [];
-  if (type === "single") {
-    const checkedRadio = list.querySelector(
-      'input[name="single_problem_radio"]:checked',
-    );
-    return checkedRadio ? [checkedRadio.value] : [];
-  }
-  const checkedCheckboxes = list.querySelectorAll(
-    'input[type="checkbox"]:checked',
-  );
-  return Array.from(checkedCheckboxes).map((cb) => cb.value);
-}
-
-// ================== Submisje ==================
 async function performSubmit(endpoint, payload) {
   try {
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const r = await fetch(`${API_URL}/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
-    const data = await response.json();
-    if (data.success) {
-      alert(`Sukces! ${data.message}`);
-    } else {
-      alert(`Błąd: ${data.error || data.message || JSON.stringify(data)}`);
-    }
+    const j = await r.json();
+    if (j.success) alert("✅ Sukces: " + (j.message || ""));
+    else alert("❌ Błąd: " + (j.error || j.message || JSON.stringify(j)));
     refreshLogs();
-  } catch (error) {
+  } catch {
     alert("Błąd komunikacji z serwerem API.");
-    console.error("Błąd submita:", error);
-  }
-}
-
-async function singleSubmit() {
-  const token = document.getElementById("token").value.trim();
-  const contest = getSelectedContestId();
-  const repeat = document.getElementById("single-repeat").value;
-  const concurrency = document.getElementById("single-concurrency").value;
-  let problem = document.getElementById("single-problem-text").value.trim();
-
-  const isDropdown =
-    document.querySelector('input[name="single-mode"]:checked').value ===
-    "dropdown";
-  if (isDropdown) {
-    const selected = getProblemsFromDropdown("single");
-    problem = selected.length > 0 ? selected[0] : "";
-  }
-
-  if (!token || !contest || !problem) {
-    alert("Wypełnij pola Token API, Kontest i Short Name Zadania.");
-    return;
-  }
-
-  try {
-    const code = await getCode("single-code", "single-file");
-    if (!code) {
-      alert("Wklej kod lub wybierz plik.");
-      return;
-    }
-    const payload = {
-      token,
-      contest,
-      problem,
-      code,
-      repeat: parseInt(repeat),
-      concurrency: parseInt(concurrency),
-    };
-    performSubmit("single_submit", payload);
-  } catch (error) {
-    alert(`Błąd odczytu kodu: ${error.message}`);
   }
 }
 
 async function multiSubmit() {
-  const token = document.getElementById("token").value.trim();
-  const contest = getSelectedContestId();
-  const repeat = document.getElementById("multi-repeat").value;
-  const concurrency = document.getElementById("multi-concurrency").value;
-  let problemsStr = document.getElementById("multi-problems-text").value.trim();
-
-  const isDropdown =
-    document.querySelector('input[name="multi-mode"]:checked').value ===
-    "dropdown";
-  if (isDropdown) problemsStr = getProblemsFromDropdown("multi").join(",");
-
-  if (!token || !contest || !problemsStr) {
-    alert("Wypełnij pola Token API, Kontest i Short Names zadań.");
-    return;
-  }
-
-  try {
-    const code = await getCode("multi-code", "multi-file");
-    if (!code) {
-      alert("Wklej kod lub wybierz plik.");
-      return;
-    }
-    const payload = {
-      token,
-      contest,
-      problems: problemsStr,
-      code,
-      repeat: parseInt(repeat),
-      concurrency: parseInt(concurrency),
-    };
-    performSubmit("multi_submit", payload);
-  } catch (error) {
-    alert(`Błąd odczytu kodu: ${error.message}`);
-  }
+  const token = id("token").value.trim();
+  const contest = id("contest-input").value.trim();
+  const repeat = parseInt(id("multi-repeat").value || "1");
+  const concurrency = parseInt(id("multi-concurrency").value || "5");
+  const problems = id("multi-problems-text").value.trim();
+  if (!token || !contest || !problems) return alert("⚠️ Wypełnij Token, Contest i wybierz zadania.");
+  const code = await getCode("multi-code", "multi-file");
+  if (!code) return alert("⚠️ Wklej kod lub wybierz plik.");
+  performSubmit("multi_submit", { token, contest, problems, code, repeat, concurrency });
 }
 
 async function multiSybauSubmit() {
-  const token = document.getElementById("token").value.trim();
-  const contest = getSelectedContestId();
-  const repeat = document.getElementById("multi-sybau-repeat").value;
-  const concurrency = document.getElementById("multi-sybau-concurrency").value;
-  let problemsStr = document
-    .getElementById("multi-sybau-problems-text")
-    .value.trim();
-
-  const isDropdown =
-    document.querySelector('input[name="multi-sybau-mode"]:checked').value ===
-    "dropdown";
-  if (isDropdown) problemsStr = getProblemsFromDropdown("sybau").join(",");
-
-  if (!token || !contest || !problemsStr) {
-    alert("Wypełnij pola Token API, Kontest i Short Names zadań.");
-    return;
-  }
-
-  const payload = {
-    token,
-    contest,
-    problems: problemsStr,
-    repeat: parseInt(repeat),
-    concurrency: parseInt(concurrency),
-  };
-  performSubmit("spam_submit", payload);
+  const token = id("token").value.trim();
+  const contest = id("contest-input").value.trim();
+  const repeat = parseInt(id("multi-sybau-repeat").value || "1");
+  const concurrency = parseInt(id("multi-sybau-concurrency").value || "5");
+  const problems = id("multi-sybau-problems-text").value.trim();
+  if (!token || !contest || !problems) return alert("⚠️ Wypełnij Token, Contest i wybierz zadania.");
+  performSubmit("spam_submit", { token, contest, problems, repeat, concurrency });
 }
 
-async function autoSolve() {
-  const token = document.getElementById("token").value;
-  const contestId = getSelectedContestId();
-  const group = document.getElementById("auto-solve-group").value;
-  const shortname = document.getElementById("auto-solve-shortname").value;
-  const geminiApiKey = document.getElementById("gemini-api-key").value;
-
-  if (!token || !contestId || !group || !shortname || !geminiApiKey) {
-    alert("Token, contest, group, shortname, and Gemini API Key are required.");
-    return;
-  }
-
-  const payload = {
-    token,
-    contest: contestId,
-    group,
-    shortname,
-    gemini_api_key: geminiApiKey,
-  };
-
-  const btn = document.querySelector("#auto-solve-section button");
-  const originalBtnText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Solving...`;
-
-  try {
-    const response = await fetch(`${API_URL}/auto_solve`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const result = await response.json();
-    if (result.success) {
-      alert(result.message);
-    } else {
-      alert(`Error: ${result.error}`);
-    }
-  } catch (error) {
-    alert(`An unexpected error occurred: ${error}`);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalBtnText;
-    refreshLogs();
-  }
-}
-
-function useToken(token) {
-  document.getElementById("token").value = token;
-  checkToken();
-}
-
-function copyToken(token) {
-  navigator.clipboard.writeText(token).then(
-    () => {
-      alert("Token skopiowany do schowka!");
-    },
-    () => {
-      alert("Błąd kopiowania tokena.");
-    },
-  );
-}
-
-// GLOBAL to prevent overlapping checks
-let _currentTokenCheck = {
-  controller: null,
-  inProgress: false
-};
-
-async function checkToken() {
-  const token = document.getElementById("token").value.trim();
-  const statusDiv = document.getElementById("token-status");
-  const usernameDiv = document.getElementById("token-username");
-
-  // Ensure UI elements exist
-  if (!statusDiv) {
-    console.error("Missing #token-status element");
-    return;
-  }
-  if (!usernameDiv) {
-    console.warn("Missing #token-username element (will create one)");
-    // create a fallback element so UI still updates
-    const el = document.createElement("div");
-    el.id = "token-username";
-    statusDiv.insertAdjacentElement("afterend", el);
-  }
-
-  // Prevent overlapping checks: abort previous if still running
-  if (_currentTokenCheck.inProgress && _currentTokenCheck.controller) {
-    try { _currentTokenCheck.controller.abort(); } catch (e) {}
-    _currentTokenCheck.inProgress = false;
-    _currentTokenCheck.controller = null;
-  }
-
-  // Basic UI
-  statusDiv.textContent = "Sprawdzanie...";
-  statusDiv.className = "status-message";
-  document.getElementById("token-username").textContent = "";
-
-  if (!token) {
-    statusDiv.textContent = "Wklej token API.";
-    statusDiv.className = "status-fail";
-    return;
-  }
-
-  // Setup abort controller and client timeout
-  const controller = new AbortController();
-  _currentTokenCheck.controller = controller;
-  _currentTokenCheck.inProgress = true;
-  const timeoutMs = 7000; // 7s frontend timeout
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeoutMs);
-
-  try {
-    const resp = await fetch(`${API_URL}/check_token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-    _currentTokenCheck.inProgress = false;
-    _currentTokenCheck.controller = null;
-
-    // ALWAYS read text first (never hang on resp.json())
-    const raw = await resp.text();
-    console.log("[checkToken] raw response text:", raw, "status:", resp.status, "headers:", [...resp.headers.entries()]);
-
-    // Try parse JSON safely if looks like JSON
-    let data = null;
-    const trimmed = raw.trim();
-    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-      try {
-        data = JSON.parse(trimmed);
-      } catch (e) {
-        console.warn("[checkToken] JSON.parse failed:", e);
-        data = { valid: false, error: "Invalid JSON from server", raw };
-      }
-    } else {
-      // not JSON — handle text patterns like "pong username"
-      data = { valid: false, error: trimmed };
-      const m = trimmed.match(/pong\s+(.+)/i);
-      if (m) {
-        data = { valid: true, username: m[1].trim() };
-      } else if (trimmed && ["ok","success","valid","pong"].includes(trimmed.toLowerCase())) {
-        data = { valid: true, username: "zalogowany" };
-      }
-    }
-
-    // Now update UI based on parsed data
-    if (data && data.valid) {
-      statusDiv.textContent = "✅ Token poprawny";
-      statusDiv.className = "status-ok";
-      const uname = (data.username || "Nieznany użytkownik").toString();
-      document.getElementById("token-username").textContent = `Zalogowano jako: ${uname}`;
-      document.getElementById("token-username").className = "status-username";
-    } else {
-      const errText = (data && (data.error || data.message)) || "Nieznany błąd";
-      statusDiv.textContent = `❌ Błąd tokena: ${errText}`;
-      statusDiv.className = "status-fail";
-      document.getElementById("token-username").textContent = "";
-    }
-  } catch (err) {
-    clearTimeout(timeoutId);
-    _currentTokenCheck.inProgress = false;
-    _currentTokenCheck.controller = null;
-
-    console.error("[checkToken] fetch error:", err);
-    if (err.name === "AbortError") {
-      statusDiv.textContent = "⏱️ Przekroczono czas oczekiwania (frontend). Spróbuj ponownie.";
-    } else {
-      statusDiv.textContent = `❌ Błąd komunikacji: ${err.message || err}`;
-    }
-    statusDiv.className = "status-fail";
-    document.getElementById("token-username").textContent = "";
-  }
-}
-
-
-
-
-
+// ---------- logs ----------
 async function refreshLogs() {
-  const logsBody = document.getElementById("logs-body");
+  const body = id("logs-body");
   try {
-    const response = await fetch(`${API_URL}/get_logs`);
-    if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
-    const logsData = await response.json();
-
-    logsBody.innerHTML = "";
-    if (!logsData || logsData.length === 0) {
-      logsBody.innerHTML = `<tr><td colspan="4" class="logs-empty">Brak zakończonych zleceń. Wyślij pierwszy submit!</td></tr>`;
+    const r = await fetch(`${API_URL}/get_logs`);
+    const logs = await r.json();
+    body.innerHTML = "";
+    if (!logs?.length) {
+      body.innerHTML = `<tr><td colspan="4" class="logs-empty">Brak zakończonych zleceń.</td></tr>`;
       return;
     }
-
-    logsData.forEach((log) => {
-      const statusClass = log.status === "OK" ? "status-ok" : "status-fail";
-      const newRow = logsBody.insertRow(-1);
-      newRow.innerHTML = `
-                <td class="px-4 py-2">${log.timestamp}</td>
-                <td class="px-4 py-2">${log.problem} (${log.contest})</td>
-                <td class="px-4 py-2 ${statusClass}">${log.status}</td>
-                <td class="px-4 py-2 response-text">${log.response}</td>
-            `;
+    logs.forEach(l => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="px-4 py-2">${l.timestamp}</td>
+        <td class="px-4 py-2">${l.problem} (${l.contest})</td>
+        <td class="px-4 py-2 ${l.status === "OK" ? "status-ok" : "status-fail"}">${l.status}</td>
+        <td class="px-4 py-2 response-text">${l.response}</td>`;
+      body.appendChild(tr);
     });
-  } catch (e) {
-    console.error(e);
-    logsBody.innerHTML = `<tr><td colspan="4" class="logs-empty status-fail">Nie udało się załadować logów z serwera.</td></tr>`;
+  } catch {
+    body.innerHTML = `<tr><td colspan="4" class="logs-empty status-fail">Nie udało się załadować logów.</td></tr>`;
   }
 }
 
 async function clearLogs() {
   try {
-    const response = await fetch(`${API_URL}/clear_logs`, { method: "POST" });
-    if (response.ok) refreshLogs();
-    else alert("Błąd czyszczenia logów na serwerze.");
+    const r = await fetch(`${API_URL}/clear_logs`, { method: "POST" });
+    if (r.ok) refreshLogs();
+    else alert("Błąd czyszczenia logów");
   } catch {
     alert("Błąd komunikacji z serwerem API.");
   }
 }
-async function triggerAutoSolve() {
-  // 1. Get Authentication and Input Data
-  const token = localStorage.getItem("auth_token");
-  const contest = getSelectedContestId();
-  const gemini_api_key = document.getElementById("gemini-api-key").value.trim();
-  const group = document.getElementById("problem-group").value.trim();
-  const shortname = document.getElementById("problem-shortname").value.trim();
+
+// ---------- token helpers ----------
+function useToken(t) {
+  if (id("token")) id("token").value = t;
+  checkToken();
+}
+function copyToken(t) {
+  navigator.clipboard.writeText(t)
+    .then(() => alert("📋 Token skopiowany"))
+    .catch(() => alert("❌ Błąd kopiowania"));
+}
+
+// ---------- token check ----------
+let _tokenCheck = { controller: null, inProgress: false };
+async function checkToken() {
+  const token = id("token")?.value.trim();
+  const status = id("token-status");
+  if (!status) return;
+
+  status.className = "status-message";
+  status.textContent = "⏳ Sprawdzanie...";
 
   if (!token) {
-    alert("Błąd: Token uwierzytelniający nie jest ustawiony.");
+    status.textContent = "⚠️ Wklej token API.";
+    status.className = "status-fail";
     return;
   }
-  if (!contest || !group || !shortname || !gemini_api_key) {
-    alert(
-      "Błąd: Wypełnij wszystkie pola (Token, Kontest, Klucz Gemini, Grupa, Nazwa Krótka).",
-    );
-    return;
-  }
-
-  const button = document.querySelector("#auto-solve-section button");
-  button.disabled = true;
-  const originalButtonText = button.innerHTML;
-  button.innerHTML =
-    '<i data-feather="loader" class="w-5 h-5 mr-2 animate-spin"></i> Trwa generowanie i wysyłanie...';
-  feather.replace();
-
-  const payload = {
-    token: token,
-    contest: contest,
-    group: group,
-    shortname: shortname,
-    gemini_api_key: gemini_api_key,
-  };
 
   try {
-    // 2. Make the API call to the Flask backend's /auto_solve route
-    const response = await fetch(`${API_URL}/auto_solve`, {
+    const resp = await fetch(`${API_URL}/check_token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ token })
     });
 
-    const result = await response.json();
-
-    // 3. Handle response and notify user
-    if (response.ok) {
-      alert(`Sukces: ${result.message}`);
-    } else {
-      alert(
-        `Błąd automatycznego rozwiązywania: ${result.error || "Nieznany błąd serwera."}`,
-      );
+    // Handle both JSON and plain text responses
+    let data;
+    const text = await resp.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { raw: text };
     }
-  } catch (error) {
-    console.error("Auto Solve API Error:", error);
-    alert("Błąd komunikacji z serwerem API.");
-  } finally {
-    // 4. Reset button state and refresh logs
-    button.disabled = false;
-    button.innerHTML = originalButtonText;
-    feather.replace();
-    refreshLogs();
+
+    let username = "";
+    let valid = false;
+
+    if (data.valid) {
+      valid = true;
+      username = data.username || "";
+    } else if (data.raw && data.raw.startsWith("pong")) {
+      valid = true;
+      username = data.raw.replace(/^pong\s*/i, "").trim();
+    }
+
+    if (valid) {
+      status.textContent = `✅ Token poprawny (${username || "?"})`;
+      status.className = "status-ok";
+    } else {
+      status.textContent = `❌ ${data.error || "Błąd tokena"}`;
+      status.className = "status-fail";
+    }
+  } catch (e) {
+    status.textContent = "❌ Błąd komunikacji z API.";
+    status.className = "status-fail";
   }
 }
 
-// ================== Start ==================
+
+// ---------- small UI fixes ----------
+const contestInput = id("contest-input");
+if (contestInput) {
+  contestInput.addEventListener("input", () => {
+    filterContests();
+    toggleContestList(true);
+  });
+  contestInput.addEventListener("focus", () => {
+    filterContests();
+    toggleContestList(true);
+  });
+}
+
+// Check all tokens (row-level status update)
+async function checkAllTokens() {
+  const tbody = id("token-db-body");
+  const rows = tbody ? tbody.querySelectorAll("[data-token]") : [];
+  if (rows.length === 0) {
+    alert("Brak tokenów do sprawdzenia.");
+    return;
+  }
+
+  for (const row of rows) {
+    const span = row.querySelector(".status-text");
+    const token = row.dataset.token;
+    span.innerHTML = '<i data-feather="loader" class="animate-spin"></i>';
+    feather.replace();
+
+    try {
+      const res = await fetch(`${API_URL}/check_token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+
+      if (data.valid) {
+        span.innerHTML = '<i data-feather="check-circle" class="text-green-500"></i>';
+        row.title = data.username || "OK";
+      } else {
+        span.innerHTML = '<i data-feather="x-circle" class="text-red-500"></i>';
+        row.title = data.error || "Niepoprawny";
+      }
+    } catch (e) {
+      span.innerHTML = '<i data-feather="alert-circle" class="text-red-500"></i>';
+      row.title = "Błąd komunikacji";
+    }
+
+    feather.replace();
+  }
+}
+
+// ---------- init ----------
 document.addEventListener("DOMContentLoaded", () => {
   loadContests();
   loadTokens();
   setupDropZone();
   refreshLogs();
-  updateSingleProblemLabel();
-  updateMultiLabel("multi");
-  updateMultiLabel("sybau");
 });
